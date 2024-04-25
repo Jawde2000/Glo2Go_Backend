@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ServerLibrary;
@@ -12,9 +13,11 @@ using ServerLibrary;
 namespace ServerLibrary.Context.Migrations
 {
     [DbContext(typeof(Glo2GoDbContext))]
-    partial class Glo2GoDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240425200501_TravelerEmailAsPK")]
+    partial class TravelerEmailAsPK
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -146,9 +149,6 @@ namespace ServerLibrary.Context.Migrations
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<int?>("Gender")
-                        .HasColumnType("integer");
 
                     b.Property<int>("Id")
                         .HasColumnType("integer");

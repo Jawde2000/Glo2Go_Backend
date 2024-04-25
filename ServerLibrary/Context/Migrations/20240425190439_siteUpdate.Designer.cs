@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ServerLibrary;
@@ -12,9 +13,11 @@ using ServerLibrary;
 namespace ServerLibrary.Context.Migrations
 {
     [DbContext(typeof(Glo2GoDbContext))]
-    partial class Glo2GoDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240425190439_siteUpdate")]
+    partial class siteUpdate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -135,8 +138,11 @@ namespace ServerLibrary.Context.Migrations
 
             modelBuilder.Entity("BaseLibrary.Models.Traveler", b =>
                 {
-                    b.Property<string>("TravelerEmail")
-                        .HasColumnType("text");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Discriminator")
                         .IsRequired()
@@ -146,12 +152,6 @@ namespace ServerLibrary.Context.Migrations
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<int?>("Gender")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Id")
-                        .HasColumnType("integer");
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -163,10 +163,13 @@ namespace ServerLibrary.Context.Migrations
                     b.Property<string>("ProfilePic")
                         .HasColumnType("text");
 
+                    b.Property<string>("TravelerEmail")
+                        .HasColumnType("text");
+
                     b.Property<string>("TravelerPass")
                         .HasColumnType("text");
 
-                    b.HasKey("TravelerEmail");
+                    b.HasKey("Id");
 
                     b.ToTable("Travelers");
 

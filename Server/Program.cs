@@ -16,7 +16,8 @@ builder.Services.AddCors(options =>
                           policy.WithOrigins("http://localhost:3000",
                                               "https://localhost:7262")
                             .AllowAnyMethod()
-                            .AllowAnyHeader();
+                            .AllowAnyHeader()
+                            .AllowCredentials();
                       });
 });
 
@@ -31,6 +32,7 @@ Console.WriteLine($"Connection String: {connectionString}, The server is startin
 
 builder.Services.Configure<JwtSection>(builder.Configuration.GetSection("JwtSection"));
 builder.Services.AddScoped<IUserAccount, UserAccountRepository>();
+builder.Services.AddScoped<ISiteAccount, SiteRepository>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
