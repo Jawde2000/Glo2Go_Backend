@@ -13,6 +13,7 @@ using System.Text;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
+using System.Linq;
 
 namespace ServerLibrary.Repositories.Implementations
 {
@@ -110,7 +111,7 @@ namespace ServerLibrary.Repositories.Implementations
                 return new LoginResponse(false, "Sorry, the user role you entered was not found.");
             }
 
-            var getRoleName = await FindRoleName(getUserRoles.RoleId);
+            var getRoleName = await FindRoleName(getUserRoles.RoleId!);
 
             if (getRoleName is null)
             {
@@ -119,6 +120,19 @@ namespace ServerLibrary.Repositories.Implementations
 
             string jwtToken = GenerateToken(Traveler, getRoleName!.Name!);
             string refreshToken = GenerateRefreshToken();
+
+            var findUser = await dbContext.RefreshTokenInfos.FirstOrDefaultAsync(_ => _.userId!.Equals(Traveler.Id));
+
+            if (findUser is not null)
+            {
+                findUser!.Token = refreshToken;
+                await dbContext.SaveChangesAsync();
+            }
+            else
+            {
+                await AddToDB(new RefreshTokenInfo() { Token = refreshToken, userId = Traveler.Id });
+            }
+
             return new LoginResponse(true, "Great! You’ve successfully logged in. Welcome back!", jwtToken, refreshToken);
 
         }
@@ -134,7 +148,7 @@ namespace ServerLibrary.Repositories.Implementations
                 return new LoginResponse(false, "Heads up! A refresh token is required. Please obtain a new token to continue.");
             }
 
-            var user = dbContext.Travelers.FirstOrDefault(_ => _.Id == findToken.Id);
+            var user = await dbContext.Travelers.FirstOrDefaultAsync(_ => _.Id == findToken.userId);
             
             if (user is null)
             {

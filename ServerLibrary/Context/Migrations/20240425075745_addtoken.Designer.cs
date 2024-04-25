@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ServerLibrary;
@@ -11,9 +12,11 @@ using ServerLibrary;
 namespace ServerLibrary.Context.Migrations
 {
     [DbContext(typeof(Glo2GoDbContext))]
-    partial class Glo2GoDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240425075745_addtoken")]
+    partial class addtoken
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

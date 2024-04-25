@@ -32,5 +32,17 @@ namespace Server.Controllers
             var result = await accountInterface.LoginAsync(User);
             return Ok(result);
         }
+
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshTokenAsync(RefreshTokenDto token)
+        {
+            if (token == null)
+            {
+                return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
+            }
+
+            var result = await accountInterface.RefreshTokenAsync(token);
+            return Ok(result);
+        }
     }
 }
