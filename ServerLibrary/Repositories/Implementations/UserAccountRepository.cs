@@ -29,6 +29,7 @@ namespace ServerLibrary.Repositories.Implementations
             if (user == null) return new GeneralResponse(false, "Heads up! The model currently contains no data. Please load or input data to proceed.");
 
             var checkUser = await FindUserByEmail(user.Email);
+
             if (!IsPasswordStrong(user.Password))
                 return new GeneralResponse(false, "Oops! Your current password doesn't meet the requirements. " +
                     "A strong password must contain at least one digit, " +
