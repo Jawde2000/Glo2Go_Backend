@@ -2,7 +2,9 @@
 using BaseLibrary.Models;
 using BaseLibrary.Responses;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using ServerLibrary.Repositories.Contracts;
+using System.Xml;
 namespace ServerLibrary.Repositories.Implementations
 {
     public class SiteRepository(Glo2GoDbContext dbContext) : ISiteAccount
@@ -38,15 +40,40 @@ namespace ServerLibrary.Repositories.Implementations
         }
 
 
-        public Task<SiteResponse> DeleteSiteAsync()
+        public async Task<SiteResponse> DeleteSiteAsync(DeleteSiteDTO deleteSite)
         {
-            throw new NotImplementedException();
+            if (deleteSite == null) return new SiteResponse(false, "Heads up! The model currently contains no data. Please load or input data to proceed.");
+
+            var site = await FindSiteById(deleteSite.SiteID);
+            if (site == null) return new SiteResponse(false, "The site with the given ID does not exist.");
+
+            dbContext.Sites.Remove(site);
+            await dbContext.SaveChangesAsync();
+
+            return new SiteResponse(true, "The site has been successfully deleted.");
         }
 
-        public Task<SiteResponse> UpdateSiteAsync(UpdateSiteDTO site)
+        public async Task<SiteResponse> UpdateSiteAsync(UpdateSiteDTO updateSite)
         {
-            throw new NotImplementedException();
+            if (updateSite == null) return new SiteResponse(false, "Heads up! The model currently contains no data. Please load or input data to proceed.");
+
+            var site = await FindSiteById(updateSite.SiteID);
+            if (site == null) return new SiteResponse(false, "The site with the given ID does not exist.");
+
+            site.SiteName = updateSite.SiteName;
+            site.SiteCountry = updateSite.SiteCountry;
+            site.SiteAddress = updateSite.SiteAddress;
+            site.SiteDesc = updateSite.SiteDesc;
+            site.SiteOperatingHour = updateSite.SiteOperatingHour;
+            site.SitePics = updateSite.SitePics;
+            site.SiteRating = updateSite.SiteRating;
+
+            dbContext.Sites.Update(site);
+            await dbContext.SaveChangesAsync();
+
+            return new SiteResponse(true, "The site has been successfully updated.");
         }
+
 
         private async Task<Site> FindSiteName(string siteName)
         {
@@ -85,7 +112,18 @@ namespace ServerLibrary.Repositories.Implementations
             return (T)result.Entity;
         }
 
-        public Task<SiteResponse> DeleteSiteAsync(int id)
+        public async Task<SiteResponse> ViewSitesAsync()
+        {
+            var sites = await dbContext.Sites.ToListAsync();
+
+            if (sites == null || sites.Count == 0) return new SiteResponse(false, "No sites found.");
+
+            var jsonSites = JsonConvert.SerializeObject(sites, Newtonsoft.Json.Formatting.Indented);
+
+            return new SiteResponse(true, jsonSites);
+        }
+
+        public Task<SiteResponse> GetSiteAsync(ViewSiteDTO site)
         {
             throw new NotImplementedException();
         }
