@@ -7,6 +7,9 @@ namespace ServerLibrary.Repositories.Contracts
     {
         public Task<GeneralResponse> RegisterAsync(UserRegisterDto user);
         public Task<LoginResponse> LoginAsync(UserLoginDto user);
+
+        public Task<LoginResponse> AdminLoginAsync(UserLoginDto user);
+
         public Task<GeneralResponse> UpdateTravelerAsync(UserUpdateDTO user);
 
         public Task<LoginResponse> RefreshTokenAsync(RefreshTokenDto refreshToken);

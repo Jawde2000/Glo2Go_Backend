@@ -1,13 +1,12 @@
-﻿namespace BaseLibrary.Models
+﻿namespace BaseLibrary.DTOs
 {
-    public class Review
+    public class ReviewDTO
     {
-        public int ReviewID { get; set; }
         public string ReviewTraveler { get; set; } = string.Empty;
-        public string ReviewSite {  get; set; } = string.Empty;
         public string? TravelerEmail { get; set; }
+
+        public string? ReviewSite { get; set; }
         public float ReviewRating { get; set; } = 0;
         public List<string>? ReviewPics { get; set; }
-
     }
 }

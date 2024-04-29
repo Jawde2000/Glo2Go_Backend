@@ -10,11 +10,11 @@ using ServerLibrary;
 
 #nullable disable
 
-namespace ServerLibrary.Context.Migrations
+namespace ServerLibrary.Migrations
 {
     [DbContext(typeof(Glo2GoDbContext))]
-    [Migration("20240426081430_addAddressWithForeignkey")]
-    partial class addAddressWithForeignkey
+    [Migration("20240429161908_reset-second")]
+    partial class resetsecond
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -52,28 +52,6 @@ namespace ServerLibrary.Context.Migrations
                     b.ToTable("Addresses");
                 });
 
-            modelBuilder.Entity("BaseLibrary.Models.Admin", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AdminEmail")
-                        .HasColumnType("text");
-
-                    b.Property<string>("AdminPass")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Admins");
-                });
-
             modelBuilder.Entity("BaseLibrary.Models.RefreshTokenInfo", b =>
                 {
                     b.Property<int?>("Id")
@@ -95,17 +73,35 @@ namespace ServerLibrary.Context.Migrations
 
             modelBuilder.Entity("BaseLibrary.Models.Review", b =>
                 {
-                    b.Property<string>("ReviewID")
-                        .HasColumnType("text");
-
-                    b.Property<int>("ReviewRating")
+                    b.Property<int>("ReviewID")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ReviewID"));
+
+                    b.Property<List<string>>("ReviewPics")
+                        .HasColumnType("text[]");
+
+                    b.Property<float>("ReviewRating")
+                        .HasColumnType("real");
+
+                    b.Property<string>("ReviewSite")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("ReviewTraveler")
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("SiteID")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TravelerEmail")
+                        .HasColumnType("text");
+
                     b.HasKey("ReviewID");
+
+                    b.HasIndex("SiteID");
 
                     b.ToTable("Reviews");
                 });
@@ -138,8 +134,8 @@ namespace ServerLibrary.Context.Migrations
                     b.Property<List<string>>("SitePics")
                         .HasColumnType("text[]");
 
-                    b.Property<int>("SiteRating")
-                        .HasColumnType("integer");
+                    b.Property<float>("SiteRating")
+                        .HasColumnType("real");
 
                     b.HasKey("SiteID");
 
@@ -167,6 +163,9 @@ namespace ServerLibrary.Context.Migrations
                     b.Property<string>("TravelerEmail")
                         .HasColumnType("text");
 
+                    b.Property<int>("FailedLoginAttempt")
+                        .HasColumnType("integer");
+
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("text");
@@ -176,6 +175,9 @@ namespace ServerLibrary.Context.Migrations
 
                     b.Property<int>("Id")
                         .HasColumnType("integer");
+
+                    b.Property<bool?>("IsLocked")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -223,6 +225,18 @@ namespace ServerLibrary.Context.Migrations
                         .IsRequired();
 
                     b.Navigation("Traveler");
+                });
+
+            modelBuilder.Entity("BaseLibrary.Models.Review", b =>
+                {
+                    b.HasOne("BaseLibrary.Models.Site", null)
+                        .WithMany("Reviews")
+                        .HasForeignKey("SiteID");
+                });
+
+            modelBuilder.Entity("BaseLibrary.Models.Site", b =>
+                {
+                    b.Navigation("Reviews");
                 });
 
             modelBuilder.Entity("BaseLibrary.Models.Traveler", b =>

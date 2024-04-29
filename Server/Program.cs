@@ -33,6 +33,7 @@ Console.WriteLine($"Connection String: {connectionString}, The server is startin
 builder.Services.Configure<JwtSection>(builder.Configuration.GetSection("JwtSection"));
 builder.Services.AddScoped<IUserAccount, UserAccountRepository>();
 builder.Services.AddScoped<ISiteAccount, SiteRepository>();
+builder.Services.AddScoped<ISiteReview, ReviewRepository>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

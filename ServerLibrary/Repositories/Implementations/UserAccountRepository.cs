@@ -2,7 +2,6 @@
 using BaseLibrary.Responses;
 using BaseLibrary.Models;
 using Microsoft.Extensions.Options;
-using ServerLibrary.Context;
 using ServerLibrary.Helpers;
 using ServerLibrary.Repositories.Contracts;
 using BCrypt.Net;
@@ -73,7 +72,7 @@ namespace ServerLibrary.Repositories.Implementations
                 await AddToDB(new UserRole() { RoleId = checkUserRole.Id, UserId = traveler.Id });
             }
 
-            return new GeneralResponse(false, "Success! Your account has been created.");
+            return new GeneralResponse(true, "Success! Your account has been created.");
         }
 
         private bool IsPasswordStrong(string password)
@@ -100,7 +99,6 @@ namespace ServerLibrary.Repositories.Implementations
 
             return true;
         }
-
 
         public async Task<LoginResponse> LoginAsync(UserLoginDto user)
         {
@@ -215,7 +213,7 @@ namespace ServerLibrary.Repositories.Implementations
             }
 
             // Check if the user's role is 'admin'
-            if (getUserRoles.RoleId != 2) // Assuming 2 is the roleId for 'admin'
+            if (getUserRoles.RoleId != 1) // Assuming 1 is the roleId for 'admin'
             {
                 return new LoginResponse(false, "Sorry, your access has been denied. This area is reserved for administrators only.");
             }
@@ -242,7 +240,7 @@ namespace ServerLibrary.Repositories.Implementations
                 await AddToDB(new RefreshTokenInfo() { Token = refreshToken, userId = admin.Id });
             }
 
-            return new LoginResponse(true, "Great! You’ve successfully logged in. Welcome back!", jwtToken, refreshToken);
+            return new LoginResponse(true, "Welcome back, Admin! Your leadership and dedication are what make this platform great. We’re glad to have you here.", jwtToken, refreshToken);
         }
 
         public async Task<LoginResponse> RefreshTokenAsync(RefreshTokenDto refreshToken)
@@ -253,7 +251,7 @@ namespace ServerLibrary.Repositories.Implementations
             
             if (findToken is null)
             {
-                return new LoginResponse(false, "Heads up! A refresh token is required. Please obtain a new token to continue.");
+                return new LoginResponse(false, "Heads up! A refresh token is required. Please obtain a new token to continuE.");
             }
 
             var user = await dbContext.Travelers.FirstOrDefaultAsync(_ => _.Id == findToken.userId);

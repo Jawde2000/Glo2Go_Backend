@@ -11,6 +11,8 @@
 
         public List<string>? SitePics { get; set; }
 
-        public int SiteRating { get; set; } = 0;
+        public float SiteRating { get; set; } = 0;
+
+        public List<Review> Reviews { get; set; } = new List<Review>();
     }
 }

@@ -79,7 +79,7 @@ namespace ServerLibrary.Repositories.Implementations
         {
             return await dbContext.Sites.FirstOrDefaultAsync(_ => _.SiteName!.ToLower()!.Equals(siteName!.ToLower()));
         }
-        public async Task<string> GetNextId()
+        private async Task<string> GetNextId()
         {
             // Get the highest current numeric ID
             var siteIds = await dbContext.Sites
