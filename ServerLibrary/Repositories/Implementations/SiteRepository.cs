@@ -29,12 +29,9 @@ namespace ServerLibrary.Repositories.Implementations
                 SiteRating = addSite.SiteRating,
             };
 
-            // Run FindSiteById and AddToDB in parallel
-            var existingSiteTask = FindSiteById(siteId);
             var addSiteTask = AddToDB(newSite);
-            await Task.WhenAll(existingSiteTask, addSiteTask);
 
-            if (existingSiteTask != null) return new SiteResponse(true, "Congratulations! Your site has been successfully created.");
+            if (addSiteTask != null) return new SiteResponse(true, "Congratulations! Your site has been successfully created.");
 
             throw new NotImplementedException();
         }
@@ -123,9 +120,15 @@ namespace ServerLibrary.Repositories.Implementations
             return new SiteResponse(true, jsonSites);
         }
 
-        public Task<SiteResponse> GetSiteAsync(ViewSiteDTO site)
+        public async Task<SiteResponse> GetSiteAsync(SiteDetailsDTO site)
         {
-            throw new NotImplementedException();
+            var siteDetails = await FindSiteById(site.SiteID);
+
+            if (siteDetails == null) return new SiteResponse(false, "No sites found.");
+
+            var details = JsonConvert.SerializeObject(siteDetails, Newtonsoft.Json.Formatting.Indented);
+
+            return new SiteResponse(true, details);
         }
     }
 }

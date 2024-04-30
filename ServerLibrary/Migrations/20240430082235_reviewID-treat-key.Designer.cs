@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ServerLibrary;
@@ -12,9 +13,11 @@ using ServerLibrary;
 namespace ServerLibrary.Migrations
 {
     [DbContext(typeof(Glo2GoDbContext))]
-    partial class Glo2GoDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240430082235_reviewID-treat-key")]
+    partial class reviewIDtreatkey
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -90,12 +93,15 @@ namespace ServerLibrary.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("SiteID")
+                        .HasColumnType("text");
+
                     b.Property<string>("TravelerEmail")
                         .HasColumnType("text");
 
                     b.HasKey("ReviewID");
 
-                    b.HasIndex("ReviewSite");
+                    b.HasIndex("SiteID");
 
                     b.ToTable("Reviews");
                 });
@@ -202,8 +208,8 @@ namespace ServerLibrary.Migrations
                     b.Property<int>("RoleId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("TravelerEmail")
-                        .HasColumnType("text");
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -223,13 +229,9 @@ namespace ServerLibrary.Migrations
 
             modelBuilder.Entity("BaseLibrary.Models.Review", b =>
                 {
-                    b.HasOne("BaseLibrary.Models.Site", "Site")
+                    b.HasOne("BaseLibrary.Models.Site", null)
                         .WithMany("Reviews")
-                        .HasForeignKey("ReviewSite")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Site");
+                        .HasForeignKey("SiteID");
                 });
 
             modelBuilder.Entity("BaseLibrary.Models.Site", b =>

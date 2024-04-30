@@ -4,7 +4,7 @@ namespace BaseLibrary.Responses
 {
     public record SiteResponse(bool Flag, String Message = null!, string data = null!);
 
-    public record SiteData
+/*    public record SiteData
     {
         public string SiteID { get; init; } = string.Empty;
         public string SiteName { get; init; } = string.Empty;
@@ -12,5 +12,5 @@ namespace BaseLibrary.Responses
         public string SiteOperatingHour { get; init; } = string.Empty;
         public List<string>? SitePics { get; init; }
         public int SiteRating { get; init; } = 0;
-    }
+    }*/
 }

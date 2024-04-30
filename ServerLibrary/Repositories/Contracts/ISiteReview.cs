@@ -12,5 +12,7 @@ namespace ServerLibrary.Repositories.Contracts
 
         public Task<List<ReviewDTO>> GetSiteReviewAsync(ViewReviewDTO reviewSite);
         public Task<ReviewResponse> ViewSitesReviewAsync();
+
+        public Task<ReviewResponse> GetRandomSiteReviewAsync();
     }
 }

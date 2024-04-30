@@ -9,7 +9,7 @@ namespace ServerLibrary.Repositories.Contracts
         public Task<SiteResponse> UpdateSiteAsync(UpdateSiteDTO site);
         public Task<SiteResponse> DeleteSiteAsync(DeleteSiteDTO SiteID);
 
-        public Task<SiteResponse> GetSiteAsync(ViewSiteDTO site);
+        public Task<SiteResponse> GetSiteAsync(SiteDetailsDTO site);
         public Task<SiteResponse> ViewSitesAsync();
     }
 }

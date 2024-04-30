@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using ServerLibrary.Repositories.Contracts;
 using BaseLibrary.DTOs;
 using BaseLibrary.Models;
+using Newtonsoft.Json;
 
 namespace Server.Controllers
 {
@@ -104,6 +105,22 @@ namespace Server.Controllers
 
             var result = await accountInterface.DeleteTravelerAsync(traveler);
             return Ok(result);
+        }
+
+        [HttpGet("getuser")]
+        public async Task<IActionResult> ListAllUsersAsync()
+        {
+
+            var result = await accountInterface.ListAllUsersAsync();
+            if (!result.Flag)
+            {
+                return BadRequest(result.Message);
+            }
+
+            // Parse the JSON string back to a list of sites
+            var randomReview = JsonConvert.DeserializeObject<List<Traveler>>(result.Message!);
+
+            return Ok(randomReview);
         }
 
     }

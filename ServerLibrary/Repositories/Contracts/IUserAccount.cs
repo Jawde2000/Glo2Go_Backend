@@ -19,5 +19,7 @@ namespace ServerLibrary.Repositories.Contracts
         public Task<GeneralResponse> SendResetAsync(UserForgotPasswordDto user);
 
         public Task<GeneralResponse> DeleteTravelerAsync(UserDeleteDTO user);
+
+        public Task<UserList> ListAllUsersAsync();
     }
 }

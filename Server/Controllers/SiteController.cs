@@ -69,5 +69,19 @@ namespace Server.Controllers
             return Ok(sites);
         }
 
+        [HttpPost("site")]
+        public async Task<IActionResult> GetSiteAsync(SiteDetailsDTO site)
+        {
+            if (site == null)
+            {
+                return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
+            }
+
+            var result = await _siteInterface.GetSiteAsync(site);
+
+            var details = JsonConvert.DeserializeObject<Site>(result.Message);
+
+            return Ok(details);
+        }
     }
 }

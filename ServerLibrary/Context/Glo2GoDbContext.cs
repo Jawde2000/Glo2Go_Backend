@@ -18,5 +18,18 @@ namespace ServerLibrary
         public DbSet<UserRole> UserRoles { get; set; }
         public DbSet<RefreshTokenInfo> RefreshTokenInfos { get; set; }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // Configure the one-to-many relationship between Site and Review
+            modelBuilder.Entity<Review>()
+                .HasOne(r => r.Site)       // One Site has many Reviews
+                .WithMany(s => s.Reviews)  // Many Reviews belong to one Site
+                .HasForeignKey(r => r.ReviewSite);  // ForeignKey in Review that points to Site
+
+            // Additional model configurations can go here
+        }
+
     }
 }

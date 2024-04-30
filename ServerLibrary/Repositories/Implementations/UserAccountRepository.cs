@@ -12,13 +12,9 @@ using System.Text;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
-using System.Linq;
-using Humanizer;
 using System.Net.Mail;
-using System;
 using System.Net;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 namespace ServerLibrary.Repositories.Implementations
 {
     public class UserAccountRepository(IOptions<JwtSection> config, Glo2GoDbContext dbContext) : IUserAccount
@@ -56,7 +52,7 @@ namespace ServerLibrary.Repositories.Implementations
             if (checkAdminRole is null)
             {
                 var createAdminRole = await AddToDB(new SystemRole() { Name = Constants.Admin });
-                await AddToDB(new UserRole() { RoleId = createAdminRole.Id, UserId = traveler.Id});
+                await AddToDB(new UserRole() { RoleId = createAdminRole.Id, TravelerEmail = traveler.TravelerEmail });
                 return new GeneralResponse(true, "Great news! Your Admin account has been successfully created.");
             }
 
@@ -65,11 +61,11 @@ namespace ServerLibrary.Repositories.Implementations
             if (checkUserRole is null)
             {
                 response = await AddToDB(new SystemRole() { Name = Constants.User });
-                await AddToDB(new UserRole() { RoleId = response.Id, UserId = traveler.Id });
+                await AddToDB(new UserRole() { RoleId = response.Id, TravelerEmail = traveler.TravelerEmail });
             }
             else
             {
-                await AddToDB(new UserRole() { RoleId = checkUserRole.Id, UserId = traveler.Id });
+                await AddToDB(new UserRole() { RoleId = checkUserRole.Id, TravelerEmail = traveler.TravelerEmail });
             }
 
             return new GeneralResponse(true, "Success! Your account has been created.");
@@ -127,10 +123,10 @@ namespace ServerLibrary.Repositories.Implementations
                 }
                 await dbContext.SaveChangesAsync();
 
-                if (Traveler.FailedLoginAttempt == 1) 
-                { 
+                if (Traveler.FailedLoginAttempt == 1)
+                {
                     return new LoginResponse(false, "Oops! It seems the password you entered isn’t valid.");
-                } 
+                }
                 else if (Traveler.FailedLoginAttempt == 5)
                 {
                     return new LoginResponse(false, "Attention! Your login attempt was unsuccessful. " +
@@ -146,10 +142,10 @@ namespace ServerLibrary.Repositories.Implementations
                         "your account may be locked for security reasons. " +
                         "Please double-check your credentials and try again");
                 }
-                
+
             }
 
-            var getUserRoles = await FindUserRole(Traveler.Id);
+            var getUserRoles = await FindUserRole(Traveler.TravelerEmail);
 
             if (getUserRoles is null)
             {
@@ -205,7 +201,7 @@ namespace ServerLibrary.Repositories.Implementations
                 return new LoginResponse(false, "Oops! It seems the email or password you entered isn’t valid.");
             }
 
-            var getUserRoles = await FindUserRole(admin.Id);
+            var getUserRoles = await FindUserRole(admin.TravelerEmail);
 
             if (getUserRoles is null)
             {
@@ -248,20 +244,20 @@ namespace ServerLibrary.Repositories.Implementations
             if (refreshToken == null) return new LoginResponse(false, "Heads up! The model currently contains no data. Please load or input data to proceed.");
 
             var findToken = await dbContext.RefreshTokenInfos.FirstOrDefaultAsync(_ => _.Token!.Equals(refreshToken.Token));
-            
+
             if (findToken is null)
             {
                 return new LoginResponse(false, "Heads up! A refresh token is required. Please obtain a new token to continuE.");
             }
 
             var user = await dbContext.Travelers.FirstOrDefaultAsync(_ => _.Id == findToken.userId);
-            
+
             if (user is null)
             {
                 return new LoginResponse(false, "Oops! We couldn’t generate a refresh token because the user was not found.");
             }
 
-            var userRole = await FindUserRole(user.Id);
+            var userRole = await FindUserRole(user.TravelerEmail);
             var roleName = await FindRoleName(userRole.RoleId);
             string jwtToken = GenerateToken(user, roleName.Name!);
             string Token = GenerateRefreshToken();
@@ -277,9 +273,9 @@ namespace ServerLibrary.Repositories.Implementations
             return new LoginResponse(true, "Success! Your token has been refreshed.", jwtToken, Token);
         }
 
-        private async Task<UserRole> FindUserRole(int userId)
+        private async Task<UserRole> FindUserRole(string TravelerEmail)
         {
-            return await dbContext.UserRoles.FirstOrDefaultAsync(_ => _.UserId == userId);
+            return await dbContext.UserRoles.FirstOrDefaultAsync(_ => _.TravelerEmail == TravelerEmail);
         }
 
         private async Task<SystemRole> FindRoleName(int roleId)
@@ -292,9 +288,9 @@ namespace ServerLibrary.Repositories.Implementations
         }
         private async Task<T> AddToDB<T>(T model)
         {
-                var result = dbContext.Add(model!);
-                await dbContext.SaveChangesAsync();
-                return (T)result.Entity;
+            var result = dbContext.Add(model!);
+            await dbContext.SaveChangesAsync();
+            return (T)result.Entity;
         }
 
         private string GenerateToken(Traveler user, string role)
@@ -316,7 +312,7 @@ namespace ServerLibrary.Repositories.Implementations
                 expires: DateTime.Now.AddDays(1),
                 signingCredentials: credential
             );
-            
+
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
         private static string GenerateRefreshToken() => Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
@@ -530,6 +526,17 @@ namespace ServerLibrary.Repositories.Implementations
                 randomNumberGenerator.GetBytes(randomBytes);
                 return Convert.ToBase64String(randomBytes);
             }
+        }
+
+        public async Task<UserList> ListAllUsersAsync()
+        {
+            var travelers = await dbContext.Travelers.ToListAsync();
+
+            if (travelers == null || travelers.Count == 0) return new UserList(false, "No users found.");
+
+            var jsonUsers = JsonConvert.SerializeObject(travelers, Newtonsoft.Json.Formatting.Indented);
+
+            return new UserList(true, jsonUsers);
         }
     }
 }
