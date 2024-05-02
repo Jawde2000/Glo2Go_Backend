@@ -4,11 +4,17 @@ using ServerLibrary.Repositories.Contracts;
 using BaseLibrary.DTOs;
 using BaseLibrary.Models;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.Authorization;
+using ServerLibrary.Repositories.Implementations;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+/*    [Authorize]*/
+
     public class AuthenticationController(IUserAccount accountInterface) : ControllerBase
     {
         [HttpPost("register")]
@@ -32,7 +38,24 @@ namespace Server.Controllers
             }
 
             var result = await accountInterface.LoginAsync(User);
-            return Ok(result);
+            if (result.Flag) // Assuming there is an IsSuccess property to check if login was successful
+            {
+                // Assuming result.data is a JSON string, deserialize it first
+
+                // Create a new object with all necessary properties
+                var response = new
+                {
+                    result.Flag,
+                    result.Message,
+                    result.Token,
+                    result.RefreshToken,
+                    result.data
+                };
+
+                return Ok(response);
+            }
+
+            return BadRequest("404 not found");
         }
 
         [HttpPost("admin/login")]
@@ -44,8 +67,27 @@ namespace Server.Controllers
             }
 
             var result = await accountInterface.AdminLoginAsync(User);
-            return Ok(result);
+
+            if (result.Flag) // Assuming there is an IsSuccess property to check if login was successful
+            {
+                // Assuming result.data is a JSON string, deserialize it first
+
+                // Create a new object with all necessary properties
+                var response = new
+                {
+                    result.Flag,
+                    result.Message,
+                    result.Token,
+                    result.RefreshToken,
+                    result.data
+                };
+
+                return Ok(response);
+            }
+
+            return BadRequest("404 not found");
         }
+
 
         [HttpPost("refresh-token")]
         public async Task<IActionResult> RefreshTokenAsync(RefreshTokenDto token)
@@ -121,6 +163,20 @@ namespace Server.Controllers
             var randomReview = JsonConvert.DeserializeObject<List<Traveler>>(result.Message!);
 
             return Ok(randomReview);
+        }
+
+        [HttpPost("userinfo")]
+        public async Task<IActionResult> GetUserInformationAsync(UserInfoDTO user)
+        {
+            // Extract the email from the principal (set during the JWT Bearer authentication)
+
+            var response = await accountInterface.GetUserInformationAsync(user);
+            if (!response.Flag)
+                return BadRequest(response.Message);
+
+            var JsonResponse = JsonConvert.DeserializeObject<Traveler>(response.Message);
+
+            return Ok(JsonResponse);
         }
 
     }

@@ -39,6 +39,8 @@ namespace Server.Controllers
             }
 
             var result = await _siteInterface.DeleteSiteAsync(site);
+
+            Console.WriteLine(result);
             return Ok(result);
         }
 

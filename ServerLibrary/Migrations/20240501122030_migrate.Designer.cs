@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ServerLibrary;
@@ -12,9 +13,11 @@ using ServerLibrary;
 namespace ServerLibrary.Migrations
 {
     [DbContext(typeof(Glo2GoDbContext))]
-    partial class Glo2GoDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240501122030_migrate")]
+    partial class migrate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -43,7 +46,8 @@ namespace ServerLibrary.Migrations
 
                     b.HasKey("AddressId");
 
-                    b.HasIndex("TravelerEmail");
+                    b.HasIndex("TravelerEmail")
+                        .IsUnique();
 
                     b.ToTable("Addresses");
                 });
@@ -166,6 +170,9 @@ namespace ServerLibrary.Migrations
                     b.Property<int?>("Gender")
                         .HasColumnType("integer");
 
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
                     b.Property<bool?>("IsLocked")
                         .HasColumnType("boolean");
 
@@ -209,8 +216,8 @@ namespace ServerLibrary.Migrations
             modelBuilder.Entity("BaseLibrary.Models.Address", b =>
                 {
                     b.HasOne("BaseLibrary.Models.Traveler", "Traveler")
-                        .WithMany()
-                        .HasForeignKey("TravelerEmail")
+                        .WithOne("Address")
+                        .HasForeignKey("BaseLibrary.Models.Address", "TravelerEmail")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -231,6 +238,12 @@ namespace ServerLibrary.Migrations
             modelBuilder.Entity("BaseLibrary.Models.Site", b =>
                 {
                     b.Navigation("Reviews");
+                });
+
+            modelBuilder.Entity("BaseLibrary.Models.Traveler", b =>
+                {
+                    b.Navigation("Address")
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

@@ -117,7 +117,7 @@ namespace ServerLibrary.Repositories.Implementations
             if (!BCrypt.Net.BCrypt.Verify(user.Password, Traveler.TravelerPass))
             {
                 Traveler.FailedLoginAttempt++;
-                if (Traveler.FailedLoginAttempt >= 6)
+                if (Traveler.FailedLoginAttempt >= 3)
                 {
                     Traveler.IsLocked = true;
                 }
@@ -127,7 +127,7 @@ namespace ServerLibrary.Repositories.Implementations
                 {
                     return new LoginResponse(false, "Oops! It seems the password you entered isn’t valid.");
                 }
-                else if (Traveler.FailedLoginAttempt == 5)
+                else if (Traveler.FailedLoginAttempt == 3)
                 {
                     return new LoginResponse(false, "Attention! Your login attempt was unsuccessful. " +
                            "This is your final attempt before your account is locked. " +
@@ -169,7 +169,7 @@ namespace ServerLibrary.Repositories.Implementations
             string jwtToken = GenerateToken(Traveler, getRoleName!.Name!);
             string refreshToken = GenerateRefreshToken();
 
-            var findUser = await dbContext.RefreshTokenInfos.FirstOrDefaultAsync(_ => _.userId!.Equals(Traveler.Id));
+            var findUser = await dbContext.RefreshTokenInfos.FirstOrDefaultAsync(_ => _.TravelerEmail!.Equals(Traveler.TravelerEmail));
 
             if (findUser is not null)
             {
@@ -178,10 +178,12 @@ namespace ServerLibrary.Repositories.Implementations
             }
             else
             {
-                await AddToDB(new RefreshTokenInfo() { Token = refreshToken, userId = Traveler.Id });
+                await AddToDB(new RefreshTokenInfo() { Token = refreshToken, TravelerEmail = Traveler.TravelerEmail });
             }
 
-            return new LoginResponse(true, "Great! You’ve successfully logged in. Welcome back!", jwtToken, refreshToken);
+            var jsonTraveler = JsonConvert.SerializeObject(Traveler, Newtonsoft.Json.Formatting.Indented);
+
+            return new LoginResponse(true, "Great! You’ve successfully logged in. Welcome back!", jwtToken, refreshToken, jsonTraveler);
 
         }
 
@@ -224,7 +226,7 @@ namespace ServerLibrary.Repositories.Implementations
             string jwtToken = GenerateToken(admin, getRoleName!.Name!);
             string refreshToken = GenerateRefreshToken();
 
-            var findUser = await dbContext.RefreshTokenInfos.FirstOrDefaultAsync(_ => _.userId!.Equals(admin.Id));
+            var findUser = await dbContext.RefreshTokenInfos.FirstOrDefaultAsync(_ => _.TravelerEmail!.Equals(admin.TravelerEmail));
 
             if (findUser is not null)
             {
@@ -233,10 +235,13 @@ namespace ServerLibrary.Repositories.Implementations
             }
             else
             {
-                await AddToDB(new RefreshTokenInfo() { Token = refreshToken, userId = admin.Id });
+                await AddToDB(new RefreshTokenInfo() { Token = refreshToken, TravelerEmail = admin.TravelerEmail });
             }
 
-            return new LoginResponse(true, "Welcome back, Admin! Your leadership and dedication are what make this platform great. We’re glad to have you here.", jwtToken, refreshToken);
+            var jsonAdmin = JsonConvert.SerializeObject(admin, Newtonsoft.Json.Formatting.Indented);
+
+
+            return new LoginResponse(true, "Welcome back, Admin! Your leadership and dedication are what make this platform great. We’re glad to have you here.", jwtToken, refreshToken, jsonAdmin);
         }
 
         public async Task<LoginResponse> RefreshTokenAsync(RefreshTokenDto refreshToken)
@@ -250,7 +255,7 @@ namespace ServerLibrary.Repositories.Implementations
                 return new LoginResponse(false, "Heads up! A refresh token is required. Please obtain a new token to continuE.");
             }
 
-            var user = await dbContext.Travelers.FirstOrDefaultAsync(_ => _.Id == findToken.userId);
+            var user = await dbContext.Travelers.FirstOrDefaultAsync(_ => _.TravelerEmail == findToken.TravelerEmail);
 
             if (user is null)
             {
@@ -262,15 +267,17 @@ namespace ServerLibrary.Repositories.Implementations
             string jwtToken = GenerateToken(user, roleName.Name!);
             string Token = GenerateRefreshToken();
 
-            var updateRefreshToken = await dbContext.RefreshTokenInfos.FirstOrDefaultAsync(_ => _.userId == user.Id);
+            var updateRefreshToken = await dbContext.RefreshTokenInfos.FirstOrDefaultAsync(_ => _.TravelerEmail == user.TravelerEmail);
             if (updateRefreshToken is null)
             {
                 return new LoginResponse(false, "Oops! We couldn’t generate a refresh token because the user has not signed in.");
             }
 
+            var jsonUser = JsonConvert.SerializeObject(user, Newtonsoft.Json.Formatting.Indented);
+
             updateRefreshToken.Token = Token;
             await dbContext.SaveChangesAsync();
-            return new LoginResponse(true, "Success! Your token has been refreshed.", jwtToken, Token);
+            return new LoginResponse(true, "Success! Your token has been refreshed.", jwtToken, Token, jsonUser);
         }
 
         private async Task<UserRole> FindUserRole(string TravelerEmail)
@@ -300,7 +307,7 @@ namespace ServerLibrary.Repositories.Implementations
 
             var userClaims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, user.TravelerEmail),
                 new Claim(ClaimTypes.Email, user.TravelerEmail!),
                 new Claim(ClaimTypes.Role, role!),
             };
@@ -325,8 +332,7 @@ namespace ServerLibrary.Repositories.Implementations
         public async Task<GeneralResponse> UpdateTravelerAsync(UserUpdateDTO user)
         {
             // Find the traveler by email
-            var traveler = await dbContext.Travelers
-                .Include(t => t.Address) // Include the Address in the query
+            var traveler = await dbContext.Travelers    // Include the Address in the query
                 .FirstOrDefaultAsync(t => t.TravelerEmail == user.TravelerEmail);
 
             if (traveler == null)
@@ -348,11 +354,11 @@ namespace ServerLibrary.Repositories.Implementations
             }
 
             // If the traveler has an address, update it
-            if (traveler.Address != null && user.Address != null)
+/*            if (traveler.Address != null && user.Address != null)
             {
                 traveler.Address.TravelAddress = user.Address.TravelAddress ?? traveler.Address.TravelAddress;
                 traveler.Address.Country = user.Address.Country ?? traveler.Address.Country;
-            }
+            }*/
 
             // Save the changes to the database
             dbContext.Travelers.Update(traveler);
@@ -390,7 +396,6 @@ namespace ServerLibrary.Repositories.Implementations
             };
 
             var getUser = await dbContext.Travelers
-                .Include(t => t.Address) // Include the Address in the query
                 .FirstOrDefaultAsync(t => t.TravelerEmail == user.Email!);
 
             if (getUser == null)
@@ -459,7 +464,6 @@ namespace ServerLibrary.Repositories.Implementations
             };
 
             var getUser = await dbContext.Travelers
-                .Include(t => t.Address) // Include the Address in the query
                 .FirstOrDefaultAsync(t => t.TravelerEmail == user.Email!);
 
             if (getUser == null)
@@ -538,5 +542,31 @@ namespace ServerLibrary.Repositories.Implementations
 
             return new UserList(true, jsonUsers);
         }
+
+        public async Task<GeneralResponse> GetUserInformationAsync(UserInfoDTO user)
+        {
+            if (string.IsNullOrEmpty(user.TravelerEmail))
+                return new GeneralResponse(false, "Invalid request. No email provided.");
+
+            try
+            {
+                var User = await dbContext.Travelers
+                                          .FirstOrDefaultAsync(t => t.TravelerEmail == user.TravelerEmail);
+
+                if (User == null)
+                    return new GeneralResponse(false, "User not found.");
+
+                var jsonUsers = JsonConvert.SerializeObject(User, Newtonsoft.Json.Formatting.Indented);
+
+
+                return new GeneralResponse(true, jsonUsers);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception details here to diagnose issues
+                return new GeneralResponse(false, "An error occurred while fetching user information: " + ex.Message);
+            }
+        }
+
     }
 }

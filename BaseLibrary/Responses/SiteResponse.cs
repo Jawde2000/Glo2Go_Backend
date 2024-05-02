@@ -2,7 +2,7 @@
 
 namespace BaseLibrary.Responses
 {
-    public record SiteResponse(bool Flag, String Message = null!, string data = null!);
+    public record SiteResponse(bool Flag, string Message = null!, string data = null!);
 
 /*    public record SiteData
     {

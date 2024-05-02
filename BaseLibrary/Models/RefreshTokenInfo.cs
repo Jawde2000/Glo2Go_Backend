@@ -4,6 +4,6 @@
     {
         public int? Id { get; set; }
         public string? Token { get; set; }
-        public int? userId { get; set; } 
+        public string? TravelerEmail { get; set; }
     }
 }

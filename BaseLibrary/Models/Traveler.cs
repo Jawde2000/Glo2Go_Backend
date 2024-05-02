@@ -4,15 +4,12 @@ namespace BaseLibrary.Models
 {
     public class Traveler
     {
-        public int Id { get; set; }
         public string? Name { get; set; }
         public string FirstName { get; set; } = string.Empty;
 
         public string LastName { get; set; } = string.Empty;
 
         public string? ProfilePic { get; set; }
-
-        public Address Address { get; set; } // This is the new Address property
 
         [Key]
         public string? TravelerEmail { get; set;}

@@ -21,5 +21,7 @@ namespace ServerLibrary.Repositories.Contracts
         public Task<GeneralResponse> DeleteTravelerAsync(UserDeleteDTO user);
 
         public Task<UserList> ListAllUsersAsync();
+
+        public Task<GeneralResponse> GetUserInformationAsync(UserInfoDTO user);
     }
 }
