@@ -25,5 +25,7 @@ namespace ServerLibrary.Repositories.Contracts
         public Task<GeneralResponse> GetUserInformationAsync(UserInfoDTO user);
 
         public Task<GeneralResponse> ValidateTokenAsync(string token);
+
+        public Task<GeneralResponse> InvalidateCurrentTokenAsync(string token);
     }
 }

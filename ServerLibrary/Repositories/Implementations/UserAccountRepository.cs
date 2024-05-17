@@ -319,7 +319,7 @@ namespace ServerLibrary.Repositories.Implementations
                 issuer: config.Value.Issuer,
                 audience: config.Value.Audience,
                 claims: userClaims,
-                expires: DateTime.Now.AddDays(5),
+                expires: DateTime.Now.AddDays(1),
                 signingCredentials: credential
             );
 
@@ -569,6 +569,35 @@ namespace ServerLibrary.Repositories.Implementations
                 // Log the exception details here to diagnose issues
                 return new GeneralResponse(false, "An error occurred while fetching user information: " + ex.Message);
             }
+        }
+
+        public async Task<GeneralResponse> InvalidateCurrentTokenAsync(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var jwtToken = tokenHandler.ReadJwtToken(token);
+
+            // Get user email from the token
+            var userEmail = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                return new GeneralResponse(false, "Invalid token. Unable to extract user email.");
+            }
+
+            // Invalidate the token by setting its expiration to a very short time in the past
+            var claimsIdentity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Email, userEmail) });
+            var newToken = tokenHandler.CreateToken(new SecurityTokenDescriptor
+            {
+                Subject = claimsIdentity,
+                Expires = DateTime.UtcNow.AddSeconds(1), // Set expiration to a past date
+                SigningCredentials = new SigningCredentials(
+                    new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config.Value.Key)),
+                    SecurityAlgorithms.HmacSha256Signature)
+            });
+
+            // Serialize the new token
+            var serializedToken = tokenHandler.WriteToken(newToken);
+
+            return new GeneralResponse(true, "Token invalidated successfully", serializedToken);
         }
 
         public async Task<GeneralResponse> ValidateTokenAsync(string token)

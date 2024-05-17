@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using ServerLibrary.Repositories.Implementations;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http.HttpResults;
+using BaseLibrary.Responses;
 
 namespace Server.Controllers
 {
@@ -97,6 +98,18 @@ namespace Server.Controllers
             }
 
             var result = await accountInterface.ValidateTokenAsync(tokenRequest.Token);
+            return Ok(result);
+        }
+
+        [HttpPost("invalidate-token")]
+        public async Task<IActionResult> InvalidateCurrentTokenAsync([FromBody] TokenRequest tokenRequest)
+        {
+            if (tokenRequest == null || string.IsNullOrEmpty(tokenRequest.Token))
+            {
+                return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
+            }
+
+            var result = await accountInterface.InvalidateCurrentTokenAsync(tokenRequest.Token);
             return Ok(result);
         }
 
