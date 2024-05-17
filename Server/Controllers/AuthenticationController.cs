@@ -88,6 +88,25 @@ namespace Server.Controllers
             return BadRequest("404 not found");
         }
 
+        [HttpPost("check-token-validation")]
+        public async Task<IActionResult> ValidateToken([FromBody] TokenRequest tokenRequest)
+        {
+            if (tokenRequest == null || string.IsNullOrEmpty(tokenRequest.Token))
+            {
+                return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
+            }
+
+            var result = await accountInterface.ValidateTokenAsync(tokenRequest.Token);
+            return Ok(result);
+        }
+
+        // Define a model to match the request body
+        public class TokenRequest
+        {
+            public string Token { get; set; }
+        }
+
+
 
         [HttpPost("refresh-token")]
         public async Task<IActionResult> RefreshTokenAsync(RefreshTokenDto token)

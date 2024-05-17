@@ -21,6 +21,13 @@ builder.Services.AddCors(options =>
                       });
 });
 
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+});
+
 // Add services to the container.
 // // register db context
 builder.Services.AddDbContext<Glo2GoDbContext>(options =>
@@ -34,6 +41,7 @@ builder.Services.Configure<JwtSection>(builder.Configuration.GetSection("JwtSect
 builder.Services.AddScoped<IUserAccount, UserAccountRepository>();
 builder.Services.AddScoped<ISiteAccount, SiteRepository>();
 builder.Services.AddScoped<ISiteReview, ReviewRepository>();
+builder.Services.AddScoped<ITimetable, TimetableRepository>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

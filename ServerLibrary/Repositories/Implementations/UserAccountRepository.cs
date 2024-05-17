@@ -15,10 +15,13 @@ using System.Security.Cryptography;
 using System.Net.Mail;
 using System.Net;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.Http;
+
 namespace ServerLibrary.Repositories.Implementations
 {
     public class UserAccountRepository(IOptions<JwtSection> config, Glo2GoDbContext dbContext) : IUserAccount
     {
+        private readonly IHttpContextAccessor _httpContextAccessor;
         public async Task<GeneralResponse> RegisterAsync(UserRegisterDto user)
         {
             if (user == null) return new GeneralResponse(false, "Heads up! The model currently contains no data. Please load or input data to proceed.");
@@ -316,7 +319,7 @@ namespace ServerLibrary.Repositories.Implementations
                 issuer: config.Value.Issuer,
                 audience: config.Value.Audience,
                 claims: userClaims,
-                expires: DateTime.Now.AddDays(1),
+                expires: DateTime.Now.AddDays(5),
                 signingCredentials: credential
             );
 
@@ -565,6 +568,44 @@ namespace ServerLibrary.Repositories.Implementations
             {
                 // Log the exception details here to diagnose issues
                 return new GeneralResponse(false, "An error occurred while fetching user information: " + ex.Message);
+            }
+        }
+
+        public async Task<GeneralResponse> ValidateTokenAsync(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(config.Value.Key);
+
+            try
+            {
+                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = config.Value.Issuer,
+                    ValidAudience = config.Value.Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ClockSkew = TimeSpan.Zero // Optional: Adjust if you need to handle clock skew
+                }, out SecurityToken validatedToken);
+
+                return new GeneralResponse(true, "Token is valid");
+            }
+            catch (SecurityTokenExpiredException)
+            {
+                // Token has expired
+                return new GeneralResponse(false, "Token is expired");
+            }
+            catch (SecurityTokenException)
+            {
+                // Token is invalid
+                return new GeneralResponse(false, "Token is invalid");
+            }
+            catch (Exception)
+            {
+                // Other errors
+                return new GeneralResponse(false, "Token is invalid");
             }
         }
 
