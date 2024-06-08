@@ -142,7 +142,7 @@ namespace ServerLibrary.Repositories.Implementations
                     return new LoginResponse(false, "Oops! Your login attempt was unsuccessful. " +
                         "This is your " + Traveler.FailedLoginAttempt + " failed attempt. " +
                         "Please note that after multiple unsuccessful attempts, " +
-                        "your account may be locked for security reasons. " +
+                        "your account will be locked for security reasons. " +
                         "Please double-check your credentials and try again");
                 }
 
@@ -357,11 +357,11 @@ namespace ServerLibrary.Repositories.Implementations
             }
 
             // If the traveler has an address, update it
-/*            if (traveler.Address != null && user.Address != null)
-            {
-                traveler.Address.TravelAddress = user.Address.TravelAddress ?? traveler.Address.TravelAddress;
-                traveler.Address.Country = user.Address.Country ?? traveler.Address.Country;
-            }*/
+            /*            if (traveler.Address != null && user.Address != null)
+                        {
+                            traveler.Address.TravelAddress = user.Address.TravelAddress ?? traveler.Address.TravelAddress;
+                            traveler.Address.Country = user.Address.Country ?? traveler.Address.Country;
+                        }*/
 
             // Save the changes to the database
             dbContext.Travelers.Update(traveler);

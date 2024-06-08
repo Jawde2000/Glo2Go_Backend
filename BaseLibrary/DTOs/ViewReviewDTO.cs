@@ -3,5 +3,6 @@
     public class ViewReviewDTO 
     {
         public string? ReviewSite { get; set; }
+        public string? TravelerComment { get; set; }
     }
 }

@@ -8,6 +8,5 @@ namespace BaseLibrary.DTOs
 {
     public class UserLoginDto : UserDto
     {
-        public bool IsLocked {  get; set; }
     }
 }

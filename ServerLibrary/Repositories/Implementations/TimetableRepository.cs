@@ -25,13 +25,19 @@ namespace ServerLibrary.Repositories.Implementations
                 TimelineStartDate = timetable.TimelineStartDate,
                 TimelineEndDate = timetable.TimelineEndDate,
                 TravelerEmail = timetable.TravelerEmail,
-                Traveler = timetable.Traveler,
+                Country = timetable.Country,
+                Region = timetable.Region,
             };
 
             var addTable = AddToDB(newTimetable);
 
             if (addTable != null) return new GeneralResponse(true, "Your timetable has been successfully created! Ready to explore your next adventure?");
 
+            throw new NotImplementedException();
+        }
+
+        public async Task<GeneralResponse> ReturnCountryWeathers()
+        {
             throw new NotImplementedException();
         }
 
@@ -56,11 +62,69 @@ namespace ServerLibrary.Repositories.Implementations
             return nextId;
         }
 
+        public async Task<List<Timetable>> GetTimetablesByTravelerEmailAsync(string travelerEmail)
+        {
+            var timetables = await dbContext.Timetables
+                .Where(t => t.TravelerEmail == travelerEmail)
+                .ToListAsync();
+
+            return timetables;
+        }
+
+        public async Task<GeneralResponse> UpdateTimetableByIdAsync(string timetableId, UpdateTimetableDTO updatedTimetable)
+        {
+            var existingTimetable = await dbContext.Timetables.FindAsync(timetableId);
+
+            if (existingTimetable == null)
+            {
+                return new GeneralResponse(false, "Timetable not found.");
+            }
+
+            // Update existing timetable with new values
+            existingTimetable.TimelineTitle = updatedTimetable.TimelineTitle;
+            existingTimetable.TimelineStartDate = updatedTimetable.TimelineStartDate;
+            existingTimetable.TimelineEndDate = updatedTimetable.TimelineEndDate;
+            existingTimetable.Country = updatedTimetable.Country;
+
+            await dbContext.SaveChangesAsync();
+
+            return new GeneralResponse(true, "Timetable updated! 🎉");
+        }
+
         private async Task<T> AddToDB<T>(T model)
         {
             var result = dbContext.Add(model!);
             await dbContext.SaveChangesAsync();
             return (T)result.Entity;
+        }
+
+        public async Task<GeneralResponse> DeleteTimetableByIDAsync(string timetableId)
+        {
+            if (timetableId == null) return new GeneralResponse(false, "Heads up! The model currently contains no data. Please load or input data to proceed.");
+
+            var table = await FindTableById(timetableId);
+            if (table == null) return new GeneralResponse(false, "The timeline with the given ID does not exist.");
+
+            dbContext.Timetables.Remove(table);
+            await dbContext.SaveChangesAsync();
+
+            return new GeneralResponse(true, "The timeline has been successfully deleted.");
+        }
+
+        private async Task<Timetable> FindTableById(string timetableID)
+        {
+            return await dbContext.Timetables.FirstOrDefaultAsync(_ => _.TimelineID!.Equals(timetableID!));
+        }
+
+        public async Task<GeneralResponse> GetTimetableAsync(string timetableId)
+        {
+            var timetableDetails = await FindTableById(timetableId);
+
+            if (timetableDetails == null) return new GeneralResponse(false, "No timetable found.");
+
+            var details = JsonConvert.SerializeObject(timetableDetails, Newtonsoft.Json.Formatting.Indented);
+
+            return new GeneralResponse(true, details);
         }
     }
 }

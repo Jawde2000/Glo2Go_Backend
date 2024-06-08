@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ServerLibrary;
@@ -12,9 +13,11 @@ using ServerLibrary;
 namespace ServerLibrary.Migrations
 {
     [DbContext(typeof(Glo2GoDbContext))]
-    partial class Glo2GoDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240606000523_add-country-region")]
+    partial class addcountryregion
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -187,9 +190,6 @@ namespace ServerLibrary.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Country")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Region")
                         .HasColumnType("text");
 
                     b.Property<DateOnly?>("TimelineEndDate")

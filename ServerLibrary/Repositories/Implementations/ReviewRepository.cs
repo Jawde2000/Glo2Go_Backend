@@ -50,25 +50,44 @@ namespace ServerLibrary.Repositories.Implementations
 
             // Fetching reviews filtered by ReviewSite
             var reviews = await dbContext.Reviews
-                   .Where(r => r.ReviewSite == reviewSite.ReviewSite)
-                   .ToListAsync();
+                .Where(r => r.ReviewSite == reviewSite.ReviewSite)
+                .ToListAsync();
 
             if (reviews.Count == 0)
-                throw new Exception("No reviews found for the specified site.");  // Or return an empty list based on your application's needs
+                return new List<ReviewDTO>();
+
+            // Identify the traveler's own comment
+            var travelerCom = reviews.FirstOrDefault(r => r.TravelerEmail == reviewSite.TravelerComment);
+            if (travelerCom != null)
+            {
+                reviews.Remove(travelerCom);  // Remove it from the list so it can be added on top later
+            }
 
             var reviewDTOs = reviews.Select(review => new ReviewDTO
             {
                 ReviewTraveler = review.ReviewTraveler,
-                TravelerEmail = review.TravelerEmail,
+                TravelerEmail = review.ReviewRating <= 3 ? "anonymous" : review.TravelerEmail,
                 ReviewSite = review.ReviewSite,
                 ReviewRating = review.ReviewRating,
                 ReviewPics = review.ReviewPics
             }).ToList();
 
+            // Add the traveler's own comment to the top of the list, if it exists
+            if (travelerCom != null)
+            {
+                var travelerReviewDTO = new ReviewDTO
+                {
+                    ReviewTraveler = travelerCom.ReviewTraveler,
+                    TravelerEmail = travelerCom.ReviewRating <= 3 ? "anonymous" : travelerCom.TravelerEmail,
+                    ReviewSite = travelerCom.ReviewSite,
+                    ReviewRating = travelerCom.ReviewRating,
+                    ReviewPics = travelerCom.ReviewPics
+                };
+                reviewDTOs.Add(travelerReviewDTO);  // Insert at the beginning
+            }
+
             return reviewDTOs;
         }
-
-
 
         public async Task<ReviewResponse> UpdateSiteReviewAsync(UpdateReviewDTO review)
         {
@@ -120,7 +139,7 @@ namespace ServerLibrary.Repositories.Implementations
                 ReviewID = review.ReviewID,
                 ReviewTraveler = review.ReviewTraveler,
                 ReviewSite = review.ReviewSite,
-                TravelerEmail = review.TravelerEmail,
+                TravelerEmail = review.ReviewRating <= 3 ? "anonymous" : review.TravelerEmail,
                 ReviewRating = review.ReviewRating,
                 ReviewPics = review.ReviewPics,
                 SiteDetails = review.Site != null ? new
@@ -132,7 +151,7 @@ namespace ServerLibrary.Repositories.Implementations
                     SiteDesc = review.Site.SiteDesc,
                     SitePics = review.Site.SitePics,
                     SiteRating = review.Site.SiteRating,
-                    SiteOperatingHours = review.Site.SiteOperatingHour // Assuming this is also needed
+                    SiteOperatingHours = review.Site.SiteOperatingHour 
                 } : null
             }).ToList();
 
