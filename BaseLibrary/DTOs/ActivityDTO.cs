@@ -10,10 +10,11 @@ namespace BaseLibrary.DTOs
     {
         public string? ActivityID { get; set; }
         public string? ActivityTitle { get; set; }
-        public double? ActivityStartTime { get; set; }
-        public double? ActivityEndTime { get; set; }
+        public DateTime? ActivityStartTime { get; set; }
+        public DateTime? ActivityEndTime { get; set; }
         public string? ActivityType { get; set; }
-        public DateOnly? ActivityDate { get; set; }
+        public string? ActivityRegion { get; set; }
+        public string? ActivityDescription { get; set; }
         public string? TimelineID { get; set; }  // Link to the Timetable
     }
 }

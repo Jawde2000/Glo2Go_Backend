@@ -23,6 +23,7 @@ namespace ServerLibrary.Repositories.Implementations
                 SiteName = addSite.SiteName,
                 SiteCountry = addSite.SiteCountry,
                 SiteAddress = addSite.SiteAddress,
+                SiteFee = addSite.SiteFee,
                 SiteDesc = addSite.SiteDesc,
                 SiteOperatingHour = addSite.SiteOperatingHour,
                 SitePics = addSite.SitePics,

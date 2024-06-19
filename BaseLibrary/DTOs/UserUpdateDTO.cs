@@ -17,8 +17,6 @@ namespace BaseLibrary.DTOs
 
         public string? ProfilePic { get; set; }
 
-        public Address? Address {  get; set; }  
-
         [Key]
         public string? TravelerEmail { get; set; }
         public string? TravelerPass { get; set; }

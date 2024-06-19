@@ -3,18 +3,21 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ServerLibrary;
 
 #nullable disable
 
-namespace ServerLibrary.Migrations
+namespace ServerLibrary.updatenewlaptop
 {
     [DbContext(typeof(Glo2GoDbContext))]
-    partial class Glo2GoDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240612090904_add-site-fee-to-Site")]
+    partial class addsitefeetoSite
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -28,17 +31,11 @@ namespace ServerLibrary.Migrations
                     b.Property<string>("ActivityID")
                         .HasColumnType("text");
 
-                    b.Property<string>("ActivityDescription")
-                        .HasColumnType("text");
+                    b.Property<DateOnly?>("ActivityDate")
+                        .HasColumnType("date");
 
-                    b.Property<DateTime?>("ActivityEnd")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ActivityRegion")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("ActivityStart")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<double?>("ActivityDuration")
+                        .HasColumnType("double precision");
 
                     b.Property<string>("ActivityTitle")
                         .HasColumnType("text");
@@ -46,10 +43,15 @@ namespace ServerLibrary.Migrations
                     b.Property<string>("ActivityType")
                         .HasColumnType("text");
 
-                    b.Property<string>("TimetableID")
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TimelineID")
                         .HasColumnType("text");
 
                     b.HasKey("ActivityID");
+
+                    b.HasIndex("TimelineID");
 
                     b.ToTable("Activities");
                 });
@@ -326,6 +328,15 @@ namespace ServerLibrary.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("UserRoles");
+                });
+
+            modelBuilder.Entity("BaseLibrary.Models.Activity", b =>
+                {
+                    b.HasOne("BaseLibrary.Models.Timetable", "Timetable")
+                        .WithMany()
+                        .HasForeignKey("TimelineID");
+
+                    b.Navigation("Timetable");
                 });
 
             modelBuilder.Entity("BaseLibrary.Models.Address", b =>
