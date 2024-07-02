@@ -62,5 +62,17 @@ namespace Server.Controllers
 
             return Ok(randomReview);
         }
+
+        [HttpDelete("delete-review")]
+        public async Task<IActionResult> DeleteSiteReviewAsync(DeleteReviewDTO deleteReview)
+        {
+            var result = await reviewInterface.DeleteSiteReviewAsync(deleteReview);
+            if (!result.Flag)
+            {
+                return BadRequest(result.Message);
+            }
+
+            return Ok(result);
+        }
     }
 }

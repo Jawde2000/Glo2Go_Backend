@@ -85,5 +85,20 @@ namespace Server.Controllers
 
             return Ok(details);
         }
+
+        [HttpGet("TopPopularSites")]
+        public async Task<IActionResult> GetTop3PopularSitesAsync()
+        {
+            var result = await _siteInterface.GetTop3PopularSitesAsync();
+            if (!result.Flag)
+            {
+                return BadRequest(result.Message);
+            }
+
+            // Parse the JSON string back to a list of sites
+            var top3Sites = JsonConvert.DeserializeObject<List<Site>>(result.Message);
+
+            return Ok(top3Sites);
+        }
     }
 }

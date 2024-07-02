@@ -10,7 +10,6 @@ namespace BaseLibrary.DTOs
 {
     public class UserUpdateDTO
     {
-        public string? Name { get; set; }
         public string FirstName { get; set; } = string.Empty;
 
         public string LastName { get; set; } = string.Empty;
@@ -19,7 +18,6 @@ namespace BaseLibrary.DTOs
 
         [Key]
         public string? TravelerEmail { get; set; }
-        public string? TravelerPass { get; set; }
 
         public Gender? Gender { get; set; }
     }

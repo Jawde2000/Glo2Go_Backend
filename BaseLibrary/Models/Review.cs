@@ -12,6 +12,7 @@ namespace BaseLibrary.Models
         public string ReviewSite {  get; set; } = string.Empty;
         public Site Site { get; set; }
         public string? TravelerEmail { get; set; }
+        public DateTime? DateTime { get; set; }
         public float ReviewRating { get; set; } = 0;
         public List<string>? ReviewPics { get; set; }
 

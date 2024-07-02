@@ -2,6 +2,6 @@
 {
     public class DeleteReviewDTO
     {
-        public string ReviewID { get; set; } = string.Empty;
+        public int? ReviewID { get; set; }
     }
 }

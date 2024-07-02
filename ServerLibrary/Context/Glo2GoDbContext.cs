@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BaseLibrary.Models;
 
 namespace ServerLibrary
 {
@@ -22,6 +23,7 @@ namespace ServerLibrary
         public DbSet<TimetableCollaborator> TimetableCollaborators { get; set; }
 
         public DbSet<Activity> Activities { get; set; }
+        public DbSet<Report> Reports { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -4,6 +4,7 @@ using ServerLibrary.Repositories.Implementations;
 using ServerLibrary.Repositories.Contracts;
 using ServerLibrary;
 using BaseLibrary.Models;
+using Server.Services;
 
 
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -44,6 +45,9 @@ builder.Services.AddScoped<ISiteAccount, SiteRepository>();
 builder.Services.AddScoped<ISiteReview, ReviewRepository>();
 builder.Services.AddScoped<ITimetable, TimetableRepository>();
 builder.Services.AddScoped<IActivity, ActivityRepository>();
+builder.Services.AddScoped<IReport, ReportRepository>();
+builder.Services.AddScoped<IDashboard, DashboardRepository>();
+builder.Services.AddScoped<SearchService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

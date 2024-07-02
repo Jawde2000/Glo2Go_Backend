@@ -29,7 +29,7 @@ namespace Server.Controllers
             return Ok(result);
         }
         [HttpPut("update-event")]
-        public async Task<IActionResult> UpdateActivityAsync(ActivityDTO activity)
+        public async Task<IActionResult> UpdateActivityAsync(UpdateActivityDTO activity)
         {
             if (activity == null)
             {

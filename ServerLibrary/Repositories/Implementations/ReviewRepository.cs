@@ -20,7 +20,8 @@ namespace ServerLibrary.Repositories.Implementations
                 ReviewSite = review.ReviewSite,
                 ReviewRating = review.ReviewRating,
                 TravelerEmail = review.TravelerEmail,
-                ReviewPics = review.ReviewPics
+                ReviewPics = review.ReviewPics,
+                DateTime = DateTime.UtcNow
             };
 
             var addReview = AddToDB(newReview);
@@ -69,7 +70,10 @@ namespace ServerLibrary.Repositories.Implementations
                 TravelerEmail = review.ReviewRating <= 3 ? "anonymous" : review.TravelerEmail,
                 ReviewSite = review.ReviewSite,
                 ReviewRating = review.ReviewRating,
-                ReviewPics = review.ReviewPics
+                ReviewPics = review.ReviewPics,
+                DateTime = review.DateTime,
+                ReviewID = review.ReviewID,
+                emailID = review.TravelerEmail
             }).ToList();
 
             // Add the traveler's own comment to the top of the list, if it exists
@@ -81,7 +85,10 @@ namespace ServerLibrary.Repositories.Implementations
                     TravelerEmail = travelerCom.ReviewRating <= 3 ? "anonymous" : travelerCom.TravelerEmail,
                     ReviewSite = travelerCom.ReviewSite,
                     ReviewRating = travelerCom.ReviewRating,
-                    ReviewPics = travelerCom.ReviewPics
+                    ReviewPics = travelerCom.ReviewPics,
+                    DateTime = travelerCom.DateTime,
+                    ReviewID = travelerCom.ReviewID,
+                    emailID = travelerCom.TravelerEmail,
                 };
                 reviewDTOs.Add(travelerReviewDTO);  // Insert at the beginning
             }

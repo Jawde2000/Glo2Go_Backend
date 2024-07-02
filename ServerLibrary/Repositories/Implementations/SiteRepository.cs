@@ -131,5 +131,44 @@ namespace ServerLibrary.Repositories.Implementations
 
             return new SiteResponse(true, details);
         }
+
+        public async Task<SiteResponse> GetTop3PopularSitesAsync()
+        {
+            // Fetch all sites along with their reviews
+            var sitesWithReviews = await dbContext.Sites
+                .Include(s => s.Reviews)
+                .ToListAsync();
+
+            // Calculate the popularity score for each site
+            var sitePopularityScores = sitesWithReviews.Select(site => new
+            {
+                Site = site,
+                PopularityScore = site.Reviews.Count > 0
+                    ? site.Reviews.Average(r => r.ReviewRating) * site.Reviews.Count
+                    : 0 // If no reviews, popularity score is 0
+            });
+
+            // Sort sites by popularity score in descending order
+            var top3Sites = sitePopularityScores
+                .OrderByDescending(sp => sp.PopularityScore)
+                .Take(3)
+                .Select(sp => sp.Site)
+                .ToList();
+
+            // Prepare the response
+            if (top3Sites == null || top3Sites.Count == 0)
+            {
+                return new SiteResponse(false, "No popular sites found.");
+            }
+
+            // Configure JsonSerializerSettings to handle self-referencing loops
+            var settings = new JsonSerializerSettings
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            };
+
+            var jsonTop3Sites = JsonConvert.SerializeObject(top3Sites, Newtonsoft.Json.Formatting.Indented, settings);
+            return new SiteResponse(true, jsonTop3Sites);
+        }
     }
 }

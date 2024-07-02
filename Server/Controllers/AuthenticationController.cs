@@ -30,6 +30,18 @@ namespace Server.Controllers
             return Ok(result);
         }
 
+        [HttpPost("register-admin")]
+        public async Task<IActionResult> RegisterUserWithRoleAsync(UserRegisterAdminDto user)
+        {
+            if (User == null)
+            {
+                return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
+            }
+
+            var result = await accountInterface.RegisterUserWithRoleAsync(user);
+            return Ok(result);
+        }
+
         [HttpPost("login")]
         public async Task<IActionResult> LoginAsync(UserLoginDto User)
         {

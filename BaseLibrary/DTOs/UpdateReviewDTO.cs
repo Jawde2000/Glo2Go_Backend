@@ -7,5 +7,6 @@
         public string? TravelerEmail { get; set; }
         public float ReviewRating { get; set; } = 0;
         public List<string>? ReviewPics { get; set; }
+
     }
 }

@@ -20,6 +20,6 @@ namespace BaseLibrary.DTOs
         [DataType(DataType.Date)]
         public DateOnly? TimelineEndDate { get; set; }
 
-        public List<string>? CollaboratorEmails { get; set; } = new List<string>();
+        public string? Region { get; set; }
     }
 }

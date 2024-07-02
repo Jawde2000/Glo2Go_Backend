@@ -11,7 +11,7 @@ namespace ServerLibrary.Repositories.Contracts
     public interface IActivity
     {
         public Task<GeneralResponse> AddActivityAsync(CreateActivityDTO activity);
-        public Task<GeneralResponse> UpdateActivityAsync(ActivityDTO activity);
+        public Task<GeneralResponse> UpdateActivityAsync(UpdateActivityDTO activity);
         public Task<GeneralResponse> DeleteActivityAsync(string activityId);
         public Task<List<ActivityDTO>> GetActivityAsync(string timetableID);
     }

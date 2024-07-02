@@ -3,18 +3,21 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ServerLibrary;
 
 #nullable disable
 
-namespace ServerLibrary.Migrations
+namespace ServerLibrary.updatenewlaptop
 {
     [DbContext(typeof(Glo2GoDbContext))]
-    partial class Glo2GoDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240701154549_review-add-datetime")]
+    partial class reviewadddatetime
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -96,44 +99,6 @@ namespace ServerLibrary.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("RefreshTokenInfos");
-                });
-
-            modelBuilder.Entity("BaseLibrary.Models.Report", b =>
-                {
-                    b.Property<int>("ReportId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ReportId"));
-
-                    b.Property<bool>("IsApproved")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsReviewedByAdmin")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("ReportEmail")
-                        .HasColumnType("text");
-
-                    b.Property<string>("ReportFeedback")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ReportTitle")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ReportType")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("SiteID")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("ReportId");
-
-                    b.ToTable("Reports");
                 });
 
             modelBuilder.Entity("BaseLibrary.Models.Review", b =>

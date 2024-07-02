@@ -344,26 +344,12 @@ namespace ServerLibrary.Repositories.Implementations
             }
 
             // Update the traveler's properties
-            traveler.Name = user.Name ?? traveler.Name;
             traveler.FirstName = user.FirstName;
             traveler.LastName = user.LastName;
             traveler.ProfilePic = user.ProfilePic ?? traveler.ProfilePic;
             traveler.Gender = user.Gender ?? traveler.Gender;
 
-            // If the password is provided, hash it and update the traveler's password
-            if (!string.IsNullOrEmpty(user.TravelerPass))
-            {
-                traveler.TravelerPass = BCrypt.Net.BCrypt.HashPassword(user.TravelerPass);
-            }
 
-            // If the traveler has an address, update it
-            /*            if (traveler.Address != null && user.Address != null)
-                        {
-                            traveler.Address.TravelAddress = user.Address.TravelAddress ?? traveler.Address.TravelAddress;
-                            traveler.Address.Country = user.Address.Country ?? traveler.Address.Country;
-                        }*/
-
-            // Save the changes to the database
             dbContext.Travelers.Update(traveler);
             await dbContext.SaveChangesAsync();
 
@@ -636,6 +622,51 @@ namespace ServerLibrary.Repositories.Implementations
                 // Other errors
                 return new GeneralResponse(false, "Token is invalid");
             }
+        }
+
+        public async Task<GeneralResponse> RegisterUserWithRoleAsync(UserRegisterAdminDto user)
+        {
+            if (user == null)
+                return new GeneralResponse(false, "The model currently contains no data. Please input data to proceed.");
+
+            var existingUser = await FindUserByEmail(user.Email);
+            if (existingUser != null)
+                return new GeneralResponse(false, "User already registered. Please proceed to login.");
+
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(user.Password);
+
+            var newUser = new Traveler()
+            {
+                TravelerEmail = user.Email,
+                TravelerPass = hashedPassword
+            };
+
+            await AddToDB(newUser);
+
+            string roleName;
+            if (user.role == 1)
+                roleName = Constants.Admin;
+            else if (user.role == 2)
+                roleName = Constants.User;
+            else
+                return new GeneralResponse(false, "Invalid role specified.");
+
+            var systemRole = await dbContext.SystemRoles.FirstOrDefaultAsync(r => r.Name == roleName);
+            if (systemRole == null)
+            {
+                systemRole = new SystemRole() { Name = roleName };
+                await AddToDB(systemRole);
+            }
+
+            var userRole = new UserRole()
+            {
+                RoleId = systemRole.Id,
+                TravelerEmail = newUser.TravelerEmail
+            };
+
+            await AddToDB(userRole);
+
+            return new GeneralResponse(true, $"User registered successfully with role: {roleName}.");
         }
 
     }

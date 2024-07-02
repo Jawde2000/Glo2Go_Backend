@@ -85,6 +85,7 @@ namespace ServerLibrary.Repositories.Implementations
             existingTimetable.TimelineStartDate = updatedTimetable.TimelineStartDate;
             existingTimetable.TimelineEndDate = updatedTimetable.TimelineEndDate;
             existingTimetable.Country = updatedTimetable.Country;
+            existingTimetable.Region = updatedTimetable.Region;
 
             await dbContext.SaveChangesAsync();
 

@@ -40,7 +40,7 @@ namespace ServerLibrary.Repositories.Implementations
             throw new NotImplementedException();
         }
 
-        public async Task<GeneralResponse> UpdateActivityAsync(ActivityDTO activity)
+        public async Task<GeneralResponse> UpdateActivityAsync(UpdateActivityDTO activity)
         {
             if (activity == null) return new GeneralResponse(false, "Heads up! The model currently contains no data. Please load or input data to proceed.");
 
@@ -54,7 +54,6 @@ namespace ServerLibrary.Repositories.Implementations
             existingActivity.ActivityEnd = activity.ActivityEndTime;
             existingActivity.ActivityRegion = activity.ActivityRegion;
             existingActivity.ActivityDescription = activity.ActivityDescription;
-            existingActivity.TimetableID = activity.TimelineID;
 
             await dbContext.SaveChangesAsync();
 
