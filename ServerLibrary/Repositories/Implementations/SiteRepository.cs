@@ -134,32 +134,40 @@ namespace ServerLibrary.Repositories.Implementations
 
         public async Task<SiteResponse> GetTop3PopularSitesAsync()
         {
-            // Fetch all sites along with their reviews
-            var sitesWithReviews = await dbContext.Sites
-                .Include(s => s.Reviews)
+            // Fetch all reviews including related site data
+            var reviewsWithSites = await dbContext.Reviews
+                .Include(r => r.Site) // Include the related site information
                 .ToListAsync();
 
-            // Calculate the popularity score for each site
-            var sitePopularityScores = sitesWithReviews.Select(site => new
-            {
-                Site = site,
-                PopularityScore = site.Reviews.Count > 0
-                    ? site.Reviews.Average(r => r.ReviewRating) * site.Reviews.Count
-                    : 0 // If no reviews, popularity score is 0
-            });
+            // Calculate the popularity score for each site based on its reviews
+            var sitePopularityScores = reviewsWithSites.GroupBy(r => r.Site)
+                .Select(group => new
+                {
+                    Site = group.Key,
+                    PopularityScore = group.Average(r => r.ReviewRating) * group.Count()
+                });
 
-            // Sort sites by popularity score in descending order
-            var top3Sites = sitePopularityScores
-                .OrderByDescending(sp => sp.PopularityScore)
+            // Sort sites by popularity score in descending order and take the top 3
+            var top3Sites = sitePopularityScores.OrderByDescending(sp => sp.PopularityScore)
                 .Take(3)
-                .Select(sp => sp.Site)
                 .ToList();
 
-            // Prepare the response
             if (top3Sites == null || top3Sites.Count == 0)
             {
                 return new SiteResponse(false, "No popular sites found.");
             }
+
+            // Fetch detailed site information for the top 3 popular sites
+            var detailedSites = await dbContext.Sites
+                .Where(s => top3Sites.Select(sp => sp.Site.SiteID).Contains(s.SiteID))
+                .ToListAsync();
+
+            // Map popularity scores to the detailed sites
+            var detailedSitesWithPopularity = detailedSites.Select(site => new
+            {
+                Site = site,
+                PopularityScore = top3Sites.First(sp => sp.Site.SiteID == site.SiteID).PopularityScore
+            }).ToList();
 
             // Configure JsonSerializerSettings to handle self-referencing loops
             var settings = new JsonSerializerSettings
@@ -167,8 +175,26 @@ namespace ServerLibrary.Repositories.Implementations
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore
             };
 
-            var jsonTop3Sites = JsonConvert.SerializeObject(top3Sites, Newtonsoft.Json.Formatting.Indented, settings);
-            return new SiteResponse(true, jsonTop3Sites);
+            var jsonPopularSites = JsonConvert.SerializeObject(detailedSitesWithPopularity, Newtonsoft.Json.Formatting.Indented, settings);
+            return new SiteResponse(true, jsonPopularSites);
         }
+
+        public async Task<SiteResponse> GetRecommendedSitesAsync()
+        {
+            // Fetch all sites
+            var allSites = await dbContext.Sites.ToListAsync();
+
+            if (allSites == null || allSites.Count == 0)
+            {
+                return new SiteResponse(false, "No sites found.");
+            }
+
+            // Placeholder logic for diversity: fetch random sites to ensure variety
+            var recommendedSites = allSites.OrderBy(s => Guid.NewGuid()).Take(3).ToList();
+
+            var jsonRecommendedSites = JsonConvert.SerializeObject(recommendedSites, Newtonsoft.Json.Formatting.Indented);
+            return new SiteResponse(true, jsonRecommendedSites);
+        }
+
     }
 }

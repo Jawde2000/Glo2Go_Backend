@@ -4,11 +4,13 @@ using ServerLibrary.Repositories.Contracts;
 using BaseLibrary.DTOs;
 using BaseLibrary.Models;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.Cors;
 
 namespace Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+
     public class ReviewController(ISiteReview reviewInterface) : ControllerBase
     {
         [HttpPost("review")]

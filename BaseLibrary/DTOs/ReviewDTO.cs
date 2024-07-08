@@ -11,5 +11,6 @@
         public float ReviewRating { get; set; } = 0;
         public List<string>? ReviewPics { get; set; }
         public DateTime? DateTime { get; set; }
+        public string? Site { get; set; }
     }
 }

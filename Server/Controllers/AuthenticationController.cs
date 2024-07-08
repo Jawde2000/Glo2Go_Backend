@@ -157,6 +157,18 @@ namespace Server.Controllers
             return Ok(result);
         }
 
+        [HttpPut("UpdatePassword")]
+        public async Task<IActionResult> UpdatePasswordAsync(string token, string password)
+        {
+            if (token == null || password == null)
+            {
+                return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
+            }
+
+            var result = await accountInterface.UpdatePasswordAsync(token, password);
+            return Ok(result);
+        }
+
         [HttpPost("forgotpassword")]
         public async Task<IActionResult> SendEmailAsync(UserForgotPasswordDto traveler)
         {

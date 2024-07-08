@@ -12,10 +12,11 @@ using System.Text;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
-using System.Net.Mail;
-using System.Net;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Http;
+using MimeKit;
+using MailKit.Net.Smtp;
+using MailKit.Security;
 
 namespace ServerLibrary.Repositories.Implementations
 {
@@ -369,21 +370,76 @@ namespace ServerLibrary.Repositories.Implementations
             return new GeneralResponse(true, "Hello Admin! The user has been successfully deleted.");
         }
 
+        /*        public async Task<GeneralResponse> SendEmailAsync(UserForgotPasswordDto user)
+                {
+                    SmtpClient _smtpClient;
+
+                    _smtpClient = new SmtpClient("smtp.gmail.com")
+                    {
+                        Port = 587,
+                        EnableSsl = true,
+                        Credentials = new NetworkCredential
+                        {
+                            UserName = "go2goinc@gmail.com",
+                            Password = "intk hirt mlad ucnc"
+                        }
+                    };
+
+                    var getUser = await dbContext.Travelers
+                        .FirstOrDefaultAsync(t => t.TravelerEmail == user.Email!);
+
+                    if (getUser == null)
+                    {
+                        return new GeneralResponse(false, "Sorry, we couldn’t find an account with that information. Please double-check your details and try again.");
+                    }
+
+                    // Generate a JWT for password reset
+                    var tokenHandler = new JwtSecurityTokenHandler();
+                    var key = Encoding.ASCII.GetBytes(config.Value.Key); // Replace with your secret key
+                    var tokenDescriptor = new SecurityTokenDescriptor
+                    {
+                        Subject = new ClaimsIdentity(new Claim[]
+                        {
+                    new Claim(ClaimTypes.Name, getUser.TravelerEmail)
+                        }),
+                        Expires = DateTime.UtcNow.AddHours(1), // Token is valid for 1 hour
+                        SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                    };
+                    var token = tokenHandler.CreateToken(tokenDescriptor);
+                    var resetToken = tokenHandler.WriteToken(token);
+
+                    // Create the password reset link
+                    var resetLink = $"http://localhost:3000/reset-password?token={resetToken}";
+
+                    try
+                    {
+                        var mailMessage = new MailMessage
+                        {
+                            From = new MailAddress("glo2goinc@gmail.com", "Glo2Go"),
+                            Subject = "**Reset Your Password Request**",
+                            Body = "**Hello!**" +
+                            "\r\n\r\nWe've received a request to reset your password. " +
+                            "To help you get back into your account quickly, we've generated a password reset link for you.\r\n\r\n" +
+                            $"**Reset Link: Click here to reset your password**\r\n\r\n" +
+                            "This link will expire in 1 hour. If you didn't make this request, please ignore this email or contact our support team.\r\n\r\n" +
+                            "**Best regards,\r\nGlo2Go Team**\r\n",
+                            IsBodyHtml = true
+                        };
+                        mailMessage.To.Add(getUser.TravelerEmail!);
+
+                        await _smtpClient.SendMailAsync(mailMessage);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log or handle exceptions
+                        throw;
+                    }
+
+                    return new GeneralResponse(true, "Success! An email with a password reset link has been sent to your account. Please check your inbox and follow the instructions to reset your password.");
+                }*/
+
         public async Task<GeneralResponse> SendEmailAsync(UserForgotPasswordDto user)
         {
-            SmtpClient _smtpClient;
-
-            _smtpClient = new SmtpClient("smtp.gmail.com")
-            {
-                Port = 587,
-                EnableSsl = true,
-                Credentials = new NetworkCredential
-                {
-                    UserName = "go2goinc@gmail.com",
-                    Password = "intk hirt mlad ucnc"
-                }
-            };
-
             var getUser = await dbContext.Travelers
                 .FirstOrDefaultAsync(t => t.TravelerEmail == user.Email!);
 
@@ -410,23 +466,30 @@ namespace ServerLibrary.Repositories.Implementations
             // Create the password reset link
             var resetLink = $"http://localhost:3000/reset-password?token={resetToken}";
 
+            // Create the email message using MimeKit
+            var email = new MimeMessage();
+            email.From.Add(new MailboxAddress("Glo2Go", "glo2goinc@gmail.com"));
+            email.To.Add(new MailboxAddress("Traveller", getUser.TravelerEmail));
+            email.Subject = "Reset Your Password Request";
+            email.Body = new TextPart(MimeKit.Text.TextFormat.Html)
+            {
+                Text = "<b>Hello!</b><br><br>" +
+                       "We've received a request to reset your password. " +
+                       "To help you get back into your account quickly, we've generated a password reset link for you.<br><br>" +
+                       $"<a href='{resetLink}'>Click here to reset your password</a><br><br>" +
+                       "This link will expire in 1 hour. If you didn't make this request, please ignore this email or contact our support team.<br><br>" +
+                       "<b>Best regards,<br>Glo2Go Team</b>"
+            };
+
             try
             {
-                var mailMessage = new MailMessage
+                using (var smtp = new MailKit.Net.Smtp.SmtpClient())
                 {
-                    From = new MailAddress("glo2goinc@gmail.com", "Glo2Go"),
-                    Subject = "**Reset Your Password Request**",
-                    Body = "**Hello!**" +
-                    "\r\n\r\nWe've received a request to reset your password. " +
-                    "To help you get back into your account quickly, we've generated a password reset link for you.\r\n\r\n" +
-                    $"**Reset Link: Click here to reset your password**\r\n\r\n" +
-                    "This link will expire in 1 hour. If you didn't make this request, please ignore this email or contact our support team.\r\n\r\n" +
-                    "**Best regards,\r\nGlo2Go Team**\r\n",
-                    IsBodyHtml = true
-                };
-                mailMessage.To.Add(getUser.TravelerEmail!);
-
-                await _smtpClient.SendMailAsync(mailMessage);
+                    await smtp.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
+                    await smtp.AuthenticateAsync("go2goinc@gmail.com", "intk hirt mlad ucnc");
+                    await smtp.SendAsync(email);
+                    await smtp.DisconnectAsync(true);
+                }
             }
             catch (Exception ex)
             {
@@ -437,21 +500,9 @@ namespace ServerLibrary.Repositories.Implementations
             return new GeneralResponse(true, "Success! An email with a password reset link has been sent to your account. Please check your inbox and follow the instructions to reset your password.");
         }
 
+
         public async Task<GeneralResponse> SendResetAsync(UserForgotPasswordDto user)
         {
-            SmtpClient _smtpClient;
-
-            _smtpClient = new SmtpClient("smtp.gmail.com")
-            {
-                Port = 587,
-                EnableSsl = true,
-                Credentials = new NetworkCredential
-                {
-                    UserName = "go2goinc@gmail.com",
-                    Password = "intk hirt mlad ucnc"
-                }
-            };
-
             var getUser = await dbContext.Travelers
                 .FirstOrDefaultAsync(t => t.TravelerEmail == user.Email!);
 
@@ -467,7 +518,7 @@ namespace ServerLibrary.Repositories.Implementations
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
-                    new Claim(ClaimTypes.Name, getUser.TravelerEmail)
+            new Claim(ClaimTypes.Name, getUser.TravelerEmail)
                 }),
                 Expires = DateTime.UtcNow.AddHours(1), // Token is valid for 1 hour
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
@@ -476,25 +527,31 @@ namespace ServerLibrary.Repositories.Implementations
             var resetToken = tokenHandler.WriteToken(token);
 
             // Create the password reset link
-            var resetLink = $"http://localhost:3000/glo2go/reset-password?token={resetToken}";
+            var resetLink = $"http://localhost:3000/glo2go/reset-password/{resetToken}";
+
+            // Create the email message using MimeKit
+            var email = new MimeMessage();
+            email.Sender = MailboxAddress.Parse("glo2go00@gmail.com");
+            email.To.Add(MailboxAddress.Parse(getUser.TravelerEmail));
+            email.Subject = "Reset Your Password Request";
+
+            email.Body = new TextPart(MimeKit.Text.TextFormat.Html)
+            {
+                Text = "<b>Hello!</b><br><br>" +
+                       "We've received a request to reset your password. " +
+                       "To help you get back into your account quickly, we've generated a password reset link for you.<br><br>" +
+                       $"<a href='{resetLink}'>Click here to reset your password</a><br><br>" +
+                       "This link will expire in 1 hour. If you didn't make this request, please ignore this email or contact our support team.<br><br>" +
+                       "<b>Best regards,<br>Glo2Go Team</b>"
+            };
 
             try
             {
-                var mailMessage = new MailMessage
-                {
-                    From = new MailAddress("glo2goinc@gmail.com", "Glo2Go"),
-                    Subject = "**Reset Your Password Request**",
-                    Body = "**Hello!**" +
-                    "\r\n\r\nWe've received a request to reset your password. " +
-                    "To help you get back into your account quickly, we've generated a password reset link for you.\r\n\r\n" +
-                    $"**Reset Link: {resetLink} **\r\n\r\n" +
-                    "This link will expire in 1 hour. If you didn't make this request, please ignore this email or contact our support team.\r\n\r\n" +
-                    "**Best regards,\r\nGlo2Go Team**\r\n",
-                    IsBodyHtml = true
-                };
-                mailMessage.To.Add(getUser.TravelerEmail!);
-
-                await _smtpClient.SendMailAsync(mailMessage);
+                using var smtp = new SmtpClient();
+                smtp.Connect("smtp.gmail.com", 587, SecureSocketOptions.StartTls);
+                smtp.Authenticate("glo2go00@gmail.com", "srvr qedn glou gqre");
+                await smtp.SendAsync(email);
+                smtp.Disconnect(true);
             }
             catch (Exception ex)
             {
@@ -503,6 +560,56 @@ namespace ServerLibrary.Repositories.Implementations
             }
 
             return new GeneralResponse(true, "Success! An email with a password reset link has been sent to your account. Please check your inbox and follow the instructions to reset your password.");
+        }
+
+        public async Task<GeneralResponse> UpdatePasswordAsync(string token, string newPassword)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(config.Value.Key); // Your secret key
+
+            try
+            {
+                // Validate the token
+                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ClockSkew = TimeSpan.Zero // Remove delay of token when expire
+                }, out SecurityToken validatedToken);
+
+                var jwtToken = (JwtSecurityToken)validatedToken;
+                var userEmail = jwtToken.Claims.First(x => x.Type == "unique_name").Value;
+
+                // Find the user by email
+                var traveler = await FindUserByEmail(userEmail);
+                if (traveler == null)
+                {
+                    return new GeneralResponse(false, "Sorry, we couldn’t find an account with that information. Please double-check your details and try again.");
+                }
+
+                // Update the password
+                if (!IsPasswordStrong(newPassword))
+                {
+                    return new GeneralResponse(false, "Oops! Your new password doesn't meet the requirements. " +
+                        "A strong password must contain at least one digit, " +
+                        "one lower case letter, one upper case letter, and one special character. " +
+                        "Also, it must be between 8 and 15 characters long. " +
+                        "Let's try again with these guidelines in mind!");
+                }
+
+                traveler.TravelerPass = BCrypt.Net.BCrypt.HashPassword(newPassword);
+
+                dbContext.Travelers.Update(traveler);
+                await dbContext.SaveChangesAsync();
+
+                return new GeneralResponse(true, "Great news! Your password has been updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                return new GeneralResponse(false, "Sorry, the token is invalid or expired. Please request a new password reset.");
+            }
         }
 
 
@@ -602,7 +709,7 @@ namespace ServerLibrary.Repositories.Implementations
                     ValidIssuer = config.Value.Issuer,
                     ValidAudience = config.Value.Audience,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ClockSkew = TimeSpan.Zero // Optional: Adjust if you need to handle clock skew
+                    ClockSkew = TimeSpan.Zero
                 }, out SecurityToken validatedToken);
 
                 return new GeneralResponse(true, "Token is valid");

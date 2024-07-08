@@ -4,6 +4,7 @@ using ServerLibrary.Repositories.Contracts;
 using BaseLibrary.DTOs;
 using BaseLibrary.Models;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.Cors;
 
 namespace Server.Controllers
 {
@@ -99,6 +100,22 @@ namespace Server.Controllers
             var top3Sites = JsonConvert.DeserializeObject<List<Site>>(result.Message);
 
             return Ok(top3Sites);
+        }
+
+        [HttpGet("GetRecommendedSites")]
+        public async Task<IActionResult> GetRecommendedSitesAsync()
+        {
+            var result = await _siteInterface.GetRecommendedSitesAsync();
+
+            if (!result.Flag)
+            {
+                return BadRequest(result.Message);
+            }
+
+            // Parse the JSON string back to a list of sites
+            var GetRecommendedSitesAsync = JsonConvert.DeserializeObject<List<Site>>(result.Message);
+
+            return Ok(GetRecommendedSitesAsync);
         }
     }
 }

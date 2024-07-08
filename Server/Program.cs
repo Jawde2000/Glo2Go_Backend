@@ -9,7 +9,7 @@ using Server.Services;
 
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Services.AddHttpClient();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: MyAllowSpecificOrigins,
@@ -30,6 +30,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.SameSite = SameSiteMode.Strict;
 });
 
+
 // Add services to the container.
 // // register db context
 builder.Services.AddDbContext<Glo2GoDbContext>(options =>
@@ -48,6 +49,7 @@ builder.Services.AddScoped<IActivity, ActivityRepository>();
 builder.Services.AddScoped<IReport, ReportRepository>();
 builder.Services.AddScoped<IDashboard, DashboardRepository>();
 builder.Services.AddScoped<SearchService>();
+builder.Services.AddScoped<IWeatherService, WeatherService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -70,6 +72,8 @@ app.UseHttpsRedirection();
 app.UseCors(MyAllowSpecificOrigins);
 
 app.UseAuthorization();
+
+app.UseAuthentication();
 
 app.MapControllers();
 

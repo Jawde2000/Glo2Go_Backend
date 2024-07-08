@@ -28,5 +28,7 @@ namespace ServerLibrary.Repositories.Contracts
 
         public Task<GeneralResponse> InvalidateCurrentTokenAsync(string token);
         public Task<GeneralResponse> RegisterUserWithRoleAsync(UserRegisterAdminDto user);
+
+        public Task<GeneralResponse> UpdatePasswordAsync(string token, string newPassword);
     }
 }

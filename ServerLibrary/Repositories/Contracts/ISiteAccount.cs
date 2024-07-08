@@ -12,5 +12,6 @@ namespace ServerLibrary.Repositories.Contracts
         public Task<SiteResponse> GetSiteAsync(SiteDetailsDTO site);
         public Task<SiteResponse> ViewSitesAsync();
         public Task<SiteResponse> GetTop3PopularSitesAsync();
+        public Task<SiteResponse> GetRecommendedSitesAsync();
     }
 }
