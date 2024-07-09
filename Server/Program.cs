@@ -16,7 +16,9 @@ builder.Services.AddCors(options =>
                       policy =>
                       {
                           policy.WithOrigins("http://localhost:3000",
-                                              "https://localhost:7262")
+                                              "https://localhost:7262",
+                                              "https://glo2goweb.azurewebsites.net"
+                                              )
                             .AllowAnyMethod()
                             .AllowAnyHeader()
                             .AllowCredentials();

@@ -175,7 +175,7 @@ namespace ServerLibrary.Repositories.Implementations
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore
             };
 
-            var jsonPopularSites = JsonConvert.SerializeObject(detailedSitesWithPopularity, Newtonsoft.Json.Formatting.Indented, settings);
+            var jsonPopularSites = JsonConvert.SerializeObject(detailedSites, Newtonsoft.Json.Formatting.Indented, settings);
             return new SiteResponse(true, jsonPopularSites);
         }
 
