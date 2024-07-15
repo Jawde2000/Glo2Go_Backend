@@ -5,6 +5,8 @@ using BaseLibrary.DTOs;
 using BaseLibrary.Models;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Authorization;
+using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 using ServerLibrary.Repositories.Implementations;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -15,42 +17,52 @@ namespace Server.Controllers
     [Route("api/[controller]")]
     [ApiController]
 
-    public class AuthenticationController(IUserAccount accountInterface) : ControllerBase
+    public class AuthenticationController: ControllerBase
     {
-        [HttpPost("register")]
-        public async Task<IActionResult> RegisterAsync(UserRegisterDto User)
+        private readonly IUserAccount _accountInterface;
+
+        public AuthenticationController(IUserAccount accountInterface)
         {
-            if (User == null)
+            _accountInterface = accountInterface;
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> RegisterAsync([FromBody] UserRegisterDto User)
+        {
+            if (User == null || !ModelState.IsValid)
             {
-                return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
+                return BadRequest(ModelState);
+                //return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
             }
 
-            var result = await accountInterface.RegisterAsync(User);
+            var result = await _accountInterface.RegisterAsync(User);
             return Ok(result);
         }
 
         [Authorize(Roles = "Admin")]
         [HttpPost("register-admin")]
-        public async Task<IActionResult> RegisterUserWithRoleAsync(UserRegisterAdminDto user)
+        public async Task<IActionResult> RegisterUserWithRoleAsync([FromBody] UserRegisterAdminDto user)
         {
-            if (User == null)
+            if (User == null || !ModelState.IsValid)
             {
-                return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
+                return BadRequest(ModelState);
+                //return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
             }
 
-            var result = await accountInterface.RegisterUserWithRoleAsync(user);
+            var result = await _accountInterface.RegisterUserWithRoleAsync(user);
             return Ok(result);
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> LoginAsync(UserLoginDto User)
+        public async Task<IActionResult> LoginAsync([FromBody] UserLoginDto User)
         {
-            if (User == null)
+            if (User == null || !ModelState.IsValid)
             {
-                return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
+                return BadRequest(ModelState);
+                //return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
             }
 
-            var result = await accountInterface.LoginAsync(User);
+            var result = await _accountInterface.LoginAsync(User);
             if (result.Flag) // Assuming there is an IsSuccess property to check if login was successful
             {
                 // Assuming result.data is a JSON string, deserialize it first
@@ -68,18 +80,20 @@ namespace Server.Controllers
                 return Ok(response);
             }
 
-            return BadRequest("404 not found");
+            return BadRequest(result.Message);
+            //return BadRequest("404 not found");
         }
 
         [HttpPost("admin/login")]
-        public async Task<IActionResult> AdminLoginAsync(UserLoginDto User)
+        public async Task<IActionResult> AdminLoginAsync([FromBody] UserLoginDto User)
         {
-            if (User == null)
+            if (User == null || !ModelState.IsValid)
             {
-                return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
+                return BadRequest(ModelState);
+                //return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
             }
 
-            var result = await accountInterface.AdminLoginAsync(User);
+            var result = await _accountInterface.AdminLoginAsync(User);
 
             if (result.Flag) // Assuming there is an IsSuccess property to check if login was successful
             {
@@ -98,7 +112,8 @@ namespace Server.Controllers
                 return Ok(response);
             }
 
-            return BadRequest("404 not found");
+            return BadRequest(result.Message);
+            //return BadRequest("404 not found");
         }
 
         [HttpPost("check-token-validation")]
@@ -106,10 +121,10 @@ namespace Server.Controllers
         {
             if (tokenRequest == null || string.IsNullOrEmpty(tokenRequest.Token))
             {
-                return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
+                return BadRequest("Invalid token request.");
             }
 
-            var result = await accountInterface.ValidateTokenAsync(tokenRequest.Token);
+            var result = await _accountInterface.ValidateTokenAsync(tokenRequest.Token);
             return Ok(result);
         }
 
@@ -118,91 +133,99 @@ namespace Server.Controllers
         {
             if (tokenRequest == null || string.IsNullOrEmpty(tokenRequest.Token))
             {
-                return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
+                return BadRequest("Invalid token request.");
             }
 
-            var result = await accountInterface.InvalidateCurrentTokenAsync(tokenRequest.Token);
+            var result = await _accountInterface.InvalidateCurrentTokenAsync(tokenRequest.Token);
             return Ok(result);
         }
 
         // Define a model to match the request body
         public class TokenRequest
         {
+            [Required]
             public string Token { get; set; }
         }
 
 
 
         [HttpPost("refresh-token")]
-        public async Task<IActionResult> RefreshTokenAsync(RefreshTokenDto token)
+        public async Task<IActionResult> RefreshTokenAsync([FromBody] RefreshTokenDto token)
         {
-            if (token == null)
+            if (token == null || !ModelState.IsValid)
             {
-                return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
+                return BadRequest(ModelState);
+                //return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
             }
 
-            var result = await accountInterface.RefreshTokenAsync(token);
+            var result = await _accountInterface.RefreshTokenAsync(token);
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("updateTraveler")]
-        public async Task<IActionResult> UpdateTravelerAsync(UserUpdateDTO traveler)
+        public async Task<IActionResult> UpdateTravelerAsync([FromBody] UserUpdateDTO traveler)
         {
-            if (traveler == null)
+            if (traveler == null || !ModelState.IsValid)
             {
-                return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
+                return BadRequest(ModelState);
+                //return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
             }
 
-            var result = await accountInterface.UpdateTravelerAsync(traveler);
+            var result = await _accountInterface.UpdateTravelerAsync(traveler);
             return Ok(result);
         }
 
         [HttpPut("UpdatePassword")]
-        public async Task<IActionResult> UpdatePasswordAsync(string token, string password)
+        public async Task<IActionResult> UpdatePasswordAsync([FromQuery] string token, [FromQuery] string password)
         {
-            if (token == null || password == null)
+            if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(password))
             {
-                return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
+                return BadRequest("Token and password must be provided.");
+                //return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
             }
 
-            var result = await accountInterface.UpdatePasswordAsync(token, password);
+            var result = await _accountInterface.UpdatePasswordAsync(token, password);
             return Ok(result);
         }
 
         [HttpPost("forgotpassword")]
-        public async Task<IActionResult> SendEmailAsync(UserForgotPasswordDto traveler)
+        public async Task<IActionResult> SendEmailAsync([FromBody] UserForgotPasswordDto traveler)
         {
-            if (traveler == null)
+            if (traveler == null || !ModelState.IsValid)
             {
-                return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
+                return BadRequest(ModelState);
+                //return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
             }
 
-            var result = await accountInterface.SendEmailAsync(traveler);
+            var result = await _accountInterface.SendEmailAsync(traveler);
             return Ok(result);
         }
 
         [HttpPost("passwordreset")]
-        public async Task<IActionResult> SendResetAsync(UserForgotPasswordDto traveler)
+        public async Task<IActionResult> SendResetAsync([FromBody] UserForgotPasswordDto traveler)
         {
-            if (traveler == null)
+            if (traveler == null || !ModelState.IsValid)
             {
-                return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
+                return BadRequest(ModelState);
+                //return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
             }
 
-            var result = await accountInterface.SendResetAsync(traveler);
+            var result = await _accountInterface.SendResetAsync(traveler);
             return Ok(result);
         }
 
         [Authorize(Roles = "Admin")]
         [HttpDelete("deleteuser")]
-        public async Task<IActionResult> DeleteTravelerAsync(UserDeleteDTO traveler)
+        public async Task<IActionResult> DeleteTravelerAsync([FromBody] UserDeleteDTO traveler)
         {
-            if (traveler == null)
+            if (traveler == null || !ModelState.IsValid)
             {
-                return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
+                return BadRequest(ModelState);
+                //return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
             }
 
-            var result = await accountInterface.DeleteTravelerAsync(traveler);
+            var result = await _accountInterface.DeleteTravelerAsync(traveler);
             return Ok(result);
         }
 
@@ -211,42 +234,47 @@ namespace Server.Controllers
         public async Task<IActionResult> ListAllUsersAsync()
         {
 
-            var result = await accountInterface.ListAllUsersAsync();
+            var result = await _accountInterface.ListAllUsersAsync();
             if (!result.Flag)
             {
                 return BadRequest(result.Message);
             }
 
             // Parse the JSON string back to a list of sites
-            var randomReview = JsonConvert.DeserializeObject<List<Traveler>>(result.Message!);
+            var users = JsonConvert.DeserializeObject<List<Traveler>>(result.Message!);
 
-            return Ok(randomReview);
+            return Ok(users);
         }
 
         [HttpPost("otp")]
-        public async Task<IActionResult> CheckOtpExistAsync(string user, string otp)
+        public async Task<IActionResult> CheckOtpExistAsync([FromQuery] string user, [FromQuery] string otp)
         {
-            if (user == null)
+            if (string.IsNullOrEmpty(user) || string.IsNullOrEmpty(otp))
             {
-                return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
+                return BadRequest("User and OTP must be provided.");
+                //return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
             }
 
-            var result = await accountInterface.CheckOtpExistAsync(user, otp);
+            var result = await _accountInterface.CheckOtpExistAsync(user, otp);
             return Ok(result);
         }
 
         [HttpPost("userinfo")]
-        public async Task<IActionResult> GetUserInformationAsync(UserInfoDTO user)
+        public async Task<IActionResult> GetUserInformationAsync([FromBody] UserInfoDTO user)
         {
+            if (user == null || !ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             // Extract the email from the principal (set during the JWT Bearer authentication)
 
-            var response = await accountInterface.GetUserInformationAsync(user);
+            var response = await _accountInterface.GetUserInformationAsync(user);
             if (!response.Flag)
                 return BadRequest(response.Message);
 
-            var JsonResponse = JsonConvert.DeserializeObject<Traveler>(response.Message);
+            var userInfo = JsonConvert.DeserializeObject<Traveler>(response.Message);
 
-            return Ok(JsonResponse);
+            return Ok(userInfo);
         }
 
     }

@@ -5,6 +5,8 @@ using ServerLibrary.Repositories.Contracts;
 using ServerLibrary;
 using BaseLibrary.Models;
 using Server.Services;
+using Microsoft.AspNetCore.Identity;
+using BaseLibrary.DTOs;
 
 
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -80,3 +82,4 @@ app.UseAuthentication();
 app.MapControllers();
 
 app.Run();
+
