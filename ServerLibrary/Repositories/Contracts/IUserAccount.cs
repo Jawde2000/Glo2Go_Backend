@@ -30,5 +30,6 @@ namespace ServerLibrary.Repositories.Contracts
         public Task<GeneralResponse> RegisterUserWithRoleAsync(UserRegisterAdminDto user);
 
         public Task<GeneralResponse> UpdatePasswordAsync(string token, string newPassword);
+        public Task<GeneralResponse> CheckOtpExistAsync(string user, string otp);
     }
 }

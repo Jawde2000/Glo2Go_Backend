@@ -16,8 +16,7 @@ builder.Services.AddCors(options =>
                       policy =>
                       {
                           policy.WithOrigins("http://localhost:3000",
-                                              "https://localhost:7262",
-                                              "https://glo2goweb.azurewebsites.net"
+                                              "https://localhost:7262"
                                               )
                             .AllowAnyMethod()
                             .AllowAnyHeader()
@@ -36,7 +35,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 // Add services to the container.
 // // register db context
 builder.Services.AddDbContext<Glo2GoDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Connection")
     ?? throw new InvalidOperationException("Sorry the connection is not found")));
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -52,6 +51,7 @@ builder.Services.AddScoped<IReport, ReportRepository>();
 builder.Services.AddScoped<IDashboard, DashboardRepository>();
 builder.Services.AddScoped<SearchService>();
 builder.Services.AddScoped<IWeatherService, WeatherService>();
+builder.Services.AddHostedService<OtpCleanupService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

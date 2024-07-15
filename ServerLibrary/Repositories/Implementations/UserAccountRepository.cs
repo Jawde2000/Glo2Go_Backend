@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Http;
 using MimeKit;
 using MailKit.Net.Smtp;
 using MailKit.Security;
+using static System.Net.WebRequestMethods;
 
 namespace ServerLibrary.Repositories.Implementations
 {
@@ -186,6 +187,7 @@ namespace ServerLibrary.Repositories.Implementations
             }
 
             var jsonTraveler = JsonConvert.SerializeObject(Traveler, Newtonsoft.Json.Formatting.Indented);
+            await SendEmailAsync(Traveler.TravelerEmail);
 
             return new LoginResponse(true, "Great! You’ve successfully logged in. Welcome back!", jwtToken, refreshToken, jsonTraveler);
 
@@ -246,6 +248,95 @@ namespace ServerLibrary.Repositories.Implementations
 
 
             return new LoginResponse(true, "Welcome back, Admin! Your leadership and dedication are what make this platform great. We’re glad to have you here.", jwtToken, refreshToken, jsonAdmin);
+        }
+
+        public async Task<GeneralResponse> CheckOtpExistAsync(string user, string otp)
+        {
+            // Retrieve the user from the database
+            var getUser = await dbContext.Travelers
+                .FirstOrDefaultAsync(t => t.TravelerEmail == user!);
+
+            if (getUser == null)
+            {
+                return new GeneralResponse(false, "Sorry, we couldn’t find an account with that information. Please double-check your details and try again.");
+            }
+
+            // Retrieve the OTP associated with the user
+            var getOtp = await dbContext.OTPs
+                .FirstOrDefaultAsync(o => o.Name == user && o.otp == Convert.ToInt32(otp));
+
+            if (getOtp == null)
+            {
+                return new GeneralResponse(false, "The OTP you entered is incorrect. Please try again.");
+            }
+
+            // Check if the OTP is expired
+            var expirationTime = getOtp.CreatedAt.AddMinutes(5);
+            if (DateTime.UtcNow > expirationTime)
+            {
+                dbContext.OTPs.Remove(getOtp);
+                await dbContext.SaveChangesAsync();
+                return new GeneralResponse(false, "The OTP you entered has expired. Please request a new OTP.");
+            }
+
+            return new GeneralResponse(true, "The OTP you entered is valid.");
+        }
+
+        public int GenerateRandomSixDigitNumber()
+        {
+            Random random = new Random();
+            return random.Next(100000, 1000000); // Generates a number between 100000 and 999999
+        }
+
+        public async Task<GeneralResponse> SendEmailAsync(string user)
+        {
+            var getUser = await dbContext.Travelers
+                .FirstOrDefaultAsync(t => t.TravelerEmail == user);
+
+            var otp = GenerateRandomSixDigitNumber();
+
+            var new_otp = await AddToDB(new OTP()
+            {
+                otp = otp,
+                Name = user,
+                CreatedAt = DateTime.UtcNow,
+            });
+
+            await dbContext.SaveChangesAsync();
+
+            if (getUser == null)
+            {
+                return new GeneralResponse(false, "Sorry, we couldn’t find an account with that information. Please double-check your details and try again.");
+            }
+
+            var email = new MimeMessage();
+            email.From.Add(new MailboxAddress("Glo2Go", "glo2goinc@gmail.com"));
+            email.To.Add(new MailboxAddress("Traveller", getUser.TravelerEmail));
+            email.Subject = "OTP";
+            email.Body = new TextPart(MimeKit.Text.TextFormat.Html)
+            {
+                Text = "<b>Hello!</b><br><br>" +
+                       "This is your OTP:<br><br>" +
+                       $"<span style=\"font-size:24px; font-weight:bold;\">{otp}</span><br><br>" +
+                       "This OTP will expire in 5 minutes. If you didn't make this request, please ignore this email or contact our support team.<br><br>" +
+                       "<b>Best regards,<br>Glo2Go Team</b>"
+            };
+
+            try
+            {
+                using var smtp = new SmtpClient();
+                smtp.Connect("smtp.gmail.com", 587, SecureSocketOptions.StartTls);
+                smtp.Authenticate("glo2go00@gmail.com", "srvr qedn glou gqre");
+                await smtp.SendAsync(email);
+                smtp.Disconnect(true);
+            }
+            catch (Exception ex)
+            {
+                // Log or handle exceptions
+                throw;
+            }
+
+            return new GeneralResponse(true, "Success! An email with a password reset link has been sent to your account. Please check your inbox and follow the instructions to reset your password.");
         }
 
         public async Task<LoginResponse> RefreshTokenAsync(RefreshTokenDto refreshToken)

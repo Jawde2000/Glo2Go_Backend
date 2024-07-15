@@ -24,6 +24,7 @@ namespace ServerLibrary
 
         public DbSet<Activity> Activities { get; set; }
         public DbSet<Report> Reports { get; set; }
+        public DbSet<OTP> OTPs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

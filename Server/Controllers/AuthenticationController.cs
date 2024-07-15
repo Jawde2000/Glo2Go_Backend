@@ -14,7 +14,6 @@ namespace Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-/*    [Authorize]*/
 
     public class AuthenticationController(IUserAccount accountInterface) : ControllerBase
     {
@@ -30,6 +29,7 @@ namespace Server.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost("register-admin")]
         public async Task<IActionResult> RegisterUserWithRoleAsync(UserRegisterAdminDto user)
         {
@@ -193,6 +193,7 @@ namespace Server.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("deleteuser")]
         public async Task<IActionResult> DeleteTravelerAsync(UserDeleteDTO traveler)
         {
@@ -205,6 +206,7 @@ namespace Server.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("getuser")]
         public async Task<IActionResult> ListAllUsersAsync()
         {
@@ -219,6 +221,18 @@ namespace Server.Controllers
             var randomReview = JsonConvert.DeserializeObject<List<Traveler>>(result.Message!);
 
             return Ok(randomReview);
+        }
+
+        [HttpPost("otp")]
+        public async Task<IActionResult> CheckOtpExistAsync(string user, string otp)
+        {
+            if (user == null)
+            {
+                return BadRequest("Heads up! The model currently contains no data. Please load or input data to proceed.");
+            }
+
+            var result = await accountInterface.CheckOtpExistAsync(user, otp);
+            return Ok(result);
         }
 
         [HttpPost("userinfo")]

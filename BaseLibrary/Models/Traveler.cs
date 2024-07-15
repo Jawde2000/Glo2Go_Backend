@@ -19,8 +19,6 @@ namespace BaseLibrary.Models
 
         public bool? IsLocked { get; set; } = false;
         public int FailedLoginAttempt { get; set; } = 0;
-
-        public ICollection<TimetableCollaborator> Timetables { get; set; } = new List<TimetableCollaborator>();
     }
 
     public enum Gender
